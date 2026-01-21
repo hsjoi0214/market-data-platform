@@ -1,28 +1,54 @@
 from __future__ import annotations
 
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 import pandas as pd
+import great_expectations as gx
 
 
-def validate_prices(records: List[Dict]) -> Tuple[bool, str]:
+def validate_curated_prices(records: List[Dict[str, Any]]) -> Tuple[bool, str]:
     """
-    Minimal quality gate (GE-like rules) using simple checks.
-    We'll switch this to Great Expectations objects next, once the flow is working.
+    Validate curated price events using Great Expectations.
+    Returns (ok, message). If ok is False, message contains a short failure summary.
     """
+    if not records:
+        return False, "No records to validate"
+
     df = pd.DataFrame(records)
 
-    required = ["symbol", "price", "currency", "ts_market", "ts_ingest", "source"]
-    missing_cols = [c for c in required if c not in df.columns]
-    if missing_cols:
-        return False, f"Missing columns: {missing_cols}"
+    # Build an in-memory GE context (lightweight)
+    context = gx.get_context(mode="ephemeral")
+    datasource = context.data_sources.add_pandas(name="pandas_src")
+    asset = datasource.add_dataframe_asset(name="curated_prices_df")
 
-    if df["symbol"].isna().any():
-        return False, "Null symbol detected"
+    batch_def = asset.add_batch_definition_whole_dataframe("batch")
+    batch = batch_def.get_batch(batch_parameters={"dataframe": df})
 
-    if (df["price"] <= 0).any():
-        return False, "Non-positive price detected"
+    # Expectations (your locked minimum suite)
+    batch.expect_column_values_to_not_be_null("symbol")
+    batch.expect_column_values_to_match_regex("symbol", r"^[A-Z.\-]{1,10}$")
 
-    if df["currency"].isna().any():
-        return False, "Null currency detected"
+    batch.expect_column_values_to_not_be_null("price")
+    batch.expect_column_values_to_be_between("price", min_value=0, strict_min=True)
 
-    return True, "PASS"
+    batch.expect_column_values_to_not_be_null("currency")
+    batch.expect_column_values_to_be_in_set("currency", ["USD"])  # start strict
+
+    batch.expect_column_values_to_not_be_null("ts_market")
+    batch.expect_column_values_to_not_be_null("ts_ingest")
+
+    # parseable timestamps check (pandas coercion)
+    ts_market_parsed = pd.to_datetime(df["ts_market"], errors="coerce", utc=True)
+    ts_ingest_parsed = pd.to_datetime(df["ts_ingest"], errors="coerce", utc=True)
+    if ts_market_parsed.isna().any():
+        return False, "ts_market contains unparseable timestamps"
+    if ts_ingest_parsed.isna().any():
+        return False, "ts_ingest contains unparseable timestamps"
+
+    result = batch.validate()
+    if result.success:
+        return True, "PASS"
+
+    # Short, readable failure summary
+    failed = [r for r in result.results if not r.success]
+    msg = f"FAIL: {len(failed)} expectations failed"
+    return False, msg
