@@ -1,0 +1,37 @@
+[project]
+name = "market-data-platform"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "hsjoi0214",email = "prakash.joshi1402@icloud.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "boto3 (>=1.42.30,<2.0.0)",
+    "python-dotenv (>=1.2.1,<2.0.0)",
+    "requests (>=2.32.5,<3.0.0)",
+    "pydantic (>=2.12.5,<3.0.0)",
+    "great-expectations (>=1.11.0,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "black (>=26.1.0,<27.0.0)",
+    "ruff (>=0.14.13,<0.15.0)",
+    "pytest (>=9.0.2,<10.0.0)"
+]
+
+
+[tool.black]
+line-length = 100
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+select = ["E", "F", "I", "B"]

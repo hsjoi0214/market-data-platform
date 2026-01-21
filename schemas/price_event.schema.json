@@ -1,0 +1,13 @@
+{
+  "title": "PriceEvent",
+  "type": "object",
+  "required": ["symbol", "price", "currency", "ts_market", "ts_ingest", "source"],
+  "properties": {
+    "symbol": { "type": "string", "minLength": 1, "maxLength": 10 },
+    "price": { "type": "number", "exclusiveMinimum": 0 },
+    "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+    "ts_market": { "type": "string" },
+    "ts_ingest": { "type": "string" },
+    "source": { "type": "string" }
+  }
+}

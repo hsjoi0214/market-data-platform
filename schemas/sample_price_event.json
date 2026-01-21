@@ -1,0 +1,8 @@
+{
+  "symbol": "AAPL",
+  "price": 190.12,
+  "currency": "USD",
+  "ts_market": "2026-01-19T14:30:00Z",
+  "ts_ingest": "2026-01-19T14:30:05Z",
+  "source": "demo"
+}
