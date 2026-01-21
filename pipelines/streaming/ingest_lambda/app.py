@@ -15,6 +15,7 @@ def run_local(symbols: List[str] | None = None) -> None:
 
     raw = fetch_latest_prices(symbols)
     curated = [normalize_price_event(e) for e in raw]
+    #curated[0]["price"] = -1  # <-- intentional failure test to check quarantine
 
     ok, msg = validate_curated_prices(curated)
 
