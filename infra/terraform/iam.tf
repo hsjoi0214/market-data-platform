@@ -5,8 +5,8 @@ resource "aws_iam_role" "lambda_role" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action    = "sts:AssumeRole"
-        Effect    = "Allow"
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
         Principal = {
           Service = "lambda.amazonaws.com"
         }
@@ -23,8 +23,8 @@ resource "aws_iam_role_policy" "lambda_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action   = ["s3:GetObject", "s3:PutObject"]
-        Effect   = "Allow"
+        Action = ["s3:GetObject", "s3:PutObject"]
+        Effect = "Allow"
         Resource = [
           "${aws_s3_bucket.raw_bucket.arn}/raw/*",
           "${aws_s3_bucket.raw_bucket.arn}/curated/*",
@@ -32,7 +32,7 @@ resource "aws_iam_role_policy" "lambda_policy" {
         ]
       },
       {
-        Action   = ["dynamodb:PutItem", "dynamodb:UpdateItem"]
+        Action   = ["dynamodb:PutItem"]
         Effect   = "Allow"
         Resource = aws_dynamodb_table.latest_prices.arn
       },
