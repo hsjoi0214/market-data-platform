@@ -16,37 +16,115 @@ Key components:
 ## Steps Followed in the Project
 
 ### Step 0: **Initial Setup & Local Development**
-- Set up a local environment for testing using **Python** and **Poetry**.
-- Created a basic **streaming pipeline** where data is fetched from a stubbed provider, cleaned, and validated using **Great Expectations (GE)**.
-- Implemented data quality checks to ensure that only valid data is passed into the final system.
+**Goal**: Establish a reproducible local development environment and validate core pipeline logic before touching the cloud.
+
+**What was done**:
+- Set up a local Python development environment using **Poetry**.
+- Defined a clear project structure aligned with future AWS deployment.
+- Implemented a **local streaming-style ingestion pipeline** using a stubbed market data provider.
+- Introduced a **canonical curated schema** to normalize provider data.
+- Integrated **Great Expectations (GE)** to enforce data quality rules early in the pipeline.
+
+**Key design decision**:
+> Data quality validation is treated as a **hard gate**, ensuring data quality.
+
+**Status**: ✅ DONE
 
 ---
 
-### Step 1: **Local Streaming Pipeline**
-- **Raw Data**: The raw data is fetched from a provider stub, simulating stock prices.
-- **Curated Data**: The raw data is standardized into a stable format, cleaning it into the **curated schema**.
-- **Great Expectations Gate**: The curated data is validated using **GE**. If the data passes, it moves on to the next stage; if it fails, it is routed to a quarantine location.
-- **Quarantine**: Invalid data is stored in S3 for further investigation.
+### Step 1: Local Streaming Pipeline (Raw → Curated → Quality Gate)
 
-**Local pipeline flow**:
-1. Data is fetched and stored in the `data/raw/` folder.
-2. Data is cleaned and stored in the `data/curated/` folder.
-3. If validation fails, data is routed to the `data/quarantine/` folder.
+**Goal**: Prove the end-to-end streaming logic locally before deploying to AWS.
+
+#### Pipeline Zones (Local)
+- **Raw Zone** (`data/raw/`)
+  - Provider-format data (JSONL)
+  - No assumptions, no validation
+- **Curated Zone** (`data/curated/`)
+  - Cleaned and standardized records
+  - Stable schema used across the system
+- **Quarantine Zone** (`data/quarantine/`)
+  - Records that fail data quality checks
+  - Preserved for inspection and debugging
+
+#### Pipeline Flow
+1. Fetch simulated price data from a provider stub.
+2. Write raw data to the raw zone.
+3. Transform raw data into the curated schema.
+4. Validate curated data using **Great Expectations**.
+5. Route data:
+   - **PASS** → curated zone
+   - **FAIL** → quarantine zone
+
+This local flow mirrors the **exact architecture** later deployed to AWS.
+
+**Status**:
+- **TASK-01**: Storage zone separation (raw / curated / quarantine): ✅ DONE  
+- **TASK-02**: Great Expectations data quality gate: ✅ DONE  
+- **TASK-03**: Pass/fail routing logic with quarantine handling: ✅ DONE  
 
 ---
 
-### Step 2: **AWS Infrastructure (Terraform)**
-The AWS infrastructure was provisioned using **Terraform** for:
-1. **S3 Bucket**: To store raw, curated, and quarantine data.
-2. **DynamoDB Table**: To store the latest prices with a partition key of `symbol`.
-3. **IAM Role**: Lambda functions were given permission to access the S3 bucket and DynamoDB table.
-4. **EventBridge**: Set up to trigger Lambda functions at 1-minute intervals.
+### Step 2: AWS Infrastructure Provisioning (Terraform)
 
-### AWS Architecture:
-- **S3 Bucket**: Stores raw data, curated data, and quarantine data.
-- **DynamoDB**: Stores the latest price data.
-- **Lambda**: Processes the data, validates it using GE, and stores it in DynamoDB or quarantines it if invalid.
-- **EventBridge**: Triggers the Lambda function every minute to simulate near-real-time data ingestion.
+**Goal**: Provision production-grade cloud infrastructure using Infrastructure as Code, without deploying compute yet.
+
+All infrastructure was created using **Terraform** to ensure repeatability and clarity.
+
+#### Provisioned Resources
+1. **S3 Bucket**
+   - Single bucket with logical zones:
+     - `raw/`
+     - `curated/`
+     - `quarantine/`
+   - Versioning enabled
+   - Server-side encryption enabled
+   - Public access fully blocked
+
+2. **DynamoDB Table**
+   - Table name: `latest_prices`
+   - Partition key: `symbol`
+   - Billing mode: PAY_PER_REQUEST
+   - Designed for low-latency “latest value per symbol” access
+
+3. **IAM Role for Lambda**
+   - Permissions to:
+     - Write raw, curated, and quarantine data to S3
+     - Write latest prices to DynamoDB
+     - Emit logs to CloudWatch
+
+4. **AWS Account & Tooling Setup**
+   - AWS account secured with MFA
+   - IAM user created for development
+   - AWS CLI configured (`mdp-dev` profile)
+   - Terraform initialized and validated
+
+> At this stage, **no compute is running**, so cloud cost remains negligible.
+
+**Status**:
+- **TASK-01**: AWS account setup, IAM user, MFA, billing safeguards: ✅ DONE  
+- **TASK-02**: Terraform infrastructure provisioning (S3, DynamoDB, IAM): ✅ DONE
+
+---
+
+### Step 3: Lambda Deployment & Event-Driven Streaming (Next)
+
+**Goal**: Deploy the validated local streaming pipeline to AWS.
+
+Planned work:
+- Package the streaming pipeline as an **AWS Lambda container image**.
+- Deploy the Lambda using Terraform.
+- Configure environment variables for:
+  - S3 bucket
+  - DynamoDB table
+- Replace local filesystem writes with S3 writes.
+- On data quality **PASS**:
+  - Upsert latest prices into DynamoDB.
+- On data quality **FAIL**:
+  - Write records to the quarantine zone.
+- Add **EventBridge scheduling** to trigger the Lambda every minute, simulating near real-time ingestion.
+
+**Status**: ⏳ IN PROGRESS
 
 ---
 
