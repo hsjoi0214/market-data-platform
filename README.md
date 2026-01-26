@@ -4,12 +4,39 @@
 
 This project implements a **cloud-native data engineering platform** focused on **market data**. The platform ingests financial market data (like stock prices) in near real-time, cleans and validates it, stores the cleaned data in DynamoDB, and handles failed data through quarantine storage in S3.
 
+
 Key components:
 - **AWS Lambda**: To process and transform data.
 - **EventBridge**: To trigger Lambda functions at fixed intervals.
 - **S3**: To store raw, curated, and quarantine data.
 - **DynamoDB**: To store the latest price data.
 - **Great Expectations**: To validate the data before it is inserted into DynamoDB.
+
+---
+
+## Note on Project Intent
+
+**This project is intentionally designed as a hands-on learning resource for students and practitioners who want to understand cloud-based data engineering through practice, not theory.**
+
+It provides:
+- An **end-to-end view** of how a data engineering project is structured
+- Clear, incremental steps showing how pipelines are:
+  - Designed
+  - Implemented locally
+  - Tested
+  - Deployed and operated on the cloud
+
+This repository does **not** aim to explain data engineering concepts in theory (e.g., what is ETL, topics related to storage and abstractions, what is schema evolution, or what is data quality etc). Those topics are assumed to be learned elsewhere. The focus here is purely **practical execution and workflow understanding**.
+
+Each commit represents a **meaningful progression** in the project:
+- How the repository structure evolves
+- How components are added and wired together
+- How local testing transitions into cloud deployment
+- How validation and failure handling are introduced in real systems
+
+The complexity of data engineering always depends on the use case. This project keeps the scope intentionally manageable, while still being realistic enough to demonstrate how a **production-style, end-to-end data pipeline** is built and operated in the cloud.
+
+Treat this repository as a **reference implementation**—a concrete example of how the pieces fit together, rather than a universal blueprint.
 
 ---
 
