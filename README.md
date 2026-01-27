@@ -141,7 +141,6 @@ All infrastructure was created using **Terraform** to ensure repeatability and c
 This step transitions the project from *local simulation* to a **production-style, cloud-executed streaming pipeline**, while preserving the same architectural guarantees:
 raw → curated → quality-gated → serving.
 
----
 #### What Was Implemented :
 
 ##### 1. Lambda Containerization
@@ -151,12 +150,10 @@ raw → curated → quality-gated → serving.
 - Build optimized using `.dockerignore`
 - Single-architecture image (`linux/amd64`) to ensure Lambda compatibility
 
-
 ##### 2. Elastic Container Registry (ECR)
 - ECR repository provisioned via Terraform
 - Lambda image pushed to ECR
 - Image-based deployment strategy adopted instead of ZIP packaging
-
 
 ##### 3. Lambda Function Deployment
 - Lambda deployed via Terraform using `package_type = "Image"`
@@ -165,7 +162,6 @@ raw → curated → quality-gated → serving.
   - `DDB_TABLE_LATEST_PRICES`
 - IAM role attached with least-privilege permissions
 - Memory and timeout tuned for streaming micro-batch workloads
-
 
 ##### 4. Streaming Execution Logic (Cloud)
 - Fetch latest prices (stub provider for now)
@@ -179,12 +175,10 @@ raw → curated → quality-gated → serving.
   - Write curated batch to the S3 quarantine zone
   - Prevent invalid data from being served
 
-
 ##### 5. DynamoDB Integration
 - DynamoDB used as an OLTP serving store for “latest price per symbol”
 - Implemented float → `Decimal` conversion to meet DynamoDB type requirements
 - Verified correct numeric storage and overwrite semantics
-
 
 ##### 6. Observability & Validation
 - Lambda logs emitted to CloudWatch
@@ -194,7 +188,6 @@ raw → curated → quality-gated → serving.
   - DynamoDB updates
   - End-to-end cloud data flow correctness
 
----
 
 #### Verified Outcomes :
 
@@ -204,7 +197,6 @@ raw → curated → quality-gated → serving.
 - Latest prices stored in DynamoDB with correct data types
 - End-to-end streaming pipeline validated
 
----
 
 #### Step 3 Status :
 
@@ -213,7 +205,6 @@ raw → curated → quality-gated → serving.
 - **TASK-03.3**: Cloud execution of streaming pipeline — ✅ DONE  
 - **TASK-03.4**: S3 + DynamoDB integration validated — ✅ DONE  
 
----
 
 #### Remaining Work (Step 3 Continuation) :
 
