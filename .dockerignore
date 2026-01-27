@@ -1,0 +1,38 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# Local data + artifacts
+data/
+*.log
+*.zip
+
+# Terraform (never needed in image)
+infra/terraform/.terraform/
+infra/terraform/.terraform.lock.hcl
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.*
+infra/terraform/crash.log
+
+# OS/editor junk
+.DS_Store
+.vscode/
+.idea/
+
+# Docs/diagrams (optional — keep if you want them in image, but you don't)
+docs/

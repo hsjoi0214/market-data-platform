@@ -134,28 +134,101 @@ All infrastructure was created using **Terraform** to ensure repeatability and c
 
 ---
 
-### Step 3: Lambda Deployment & Event-Driven Streaming (Next)
+### Step 3: Lambda Deployment & Cloud-Based Streaming Pipeline
 
-**Goal**: Deploy the validated local streaming pipeline to AWS.
+**Goal**: Deploy the validated local streaming pipeline to AWS and execute it end-to-end in the cloud.
 
-Planned work:
-- Package the streaming pipeline as an **AWS Lambda container image**.
-- Deploy the Lambda using Terraform.
-- Configure environment variables for:
-  - S3 bucket
-  - DynamoDB table
-- Replace local filesystem writes with S3 writes.
-- On data quality **PASS**:
-  - Upsert latest prices into DynamoDB.
-- On data quality **FAIL**:
-  - Write records to the quarantine zone.
-- Add **EventBridge scheduling** to trigger the Lambda every minute, simulating near real-time ingestion.
+This step transitions the project from *local simulation* to a **production-style, cloud-executed streaming pipeline**, while preserving the same architectural guarantees:
+raw → curated → quality-gated → serving.
 
-**Status**: ⏳ IN PROGRESS
+---
+#### What Was Implemented :
+
+##### 1. Lambda Containerization
+- Streaming ingestion pipeline packaged as an **AWS Lambda container image**
+- Based on `public.ecr.aws/lambda/python:3.12`
+- Dependencies installed at build time
+- Build optimized using `.dockerignore`
+- Single-architecture image (`linux/amd64`) to ensure Lambda compatibility
+
+
+##### 2. Elastic Container Registry (ECR)
+- ECR repository provisioned via Terraform
+- Lambda image pushed to ECR
+- Image-based deployment strategy adopted instead of ZIP packaging
+
+
+##### 3. Lambda Function Deployment
+- Lambda deployed via Terraform using `package_type = "Image"`
+- Environment variables configured:
+  - `S3_BUCKET_NAME`
+  - `DDB_TABLE_LATEST_PRICES`
+- IAM role attached with least-privilege permissions
+- Memory and timeout tuned for streaming micro-batch workloads
+
+
+##### 4. Streaming Execution Logic (Cloud)
+- Fetch latest prices (stub provider for now)
+- Normalize provider payload into a canonical schema
+- Write **raw JSONL** batches to S3
+- Apply **Great Expectations** data quality validation
+- On **PASS**:
+  - Write curated JSONL batch to S3
+  - Upsert latest price per symbol into DynamoDB
+- On **FAIL**:
+  - Write curated batch to the S3 quarantine zone
+  - Prevent invalid data from being served
+
+
+##### 5. DynamoDB Integration
+- DynamoDB used as an OLTP serving store for “latest price per symbol”
+- Implemented float → `Decimal` conversion to meet DynamoDB type requirements
+- Verified correct numeric storage and overwrite semantics
+
+
+##### 6. Observability & Validation
+- Lambda logs emitted to CloudWatch
+- Manual invocation used to validate:
+  - Lambda execution
+  - S3 writes (raw, curated, quarantine)
+  - DynamoDB updates
+  - End-to-end cloud data flow correctness
 
 ---
 
-## Next Steps
+#### Verified Outcomes :
+
+- Lambda executes successfully in AWS
+- Raw and curated data land in S3
+- Data quality gate enforced in cloud execution
+- Latest prices stored in DynamoDB with correct data types
+- End-to-end streaming pipeline validated
+
+---
+
+#### Step 3 Status :
+
+- **TASK-03.1**: Lambda containerization & ECR push — ✅ DONE  
+- **TASK-03.2**: Lambda deployment via Terraform — ✅ DONE  
+- **TASK-03.3**: Cloud execution of streaming pipeline — ✅ DONE  
+- **TASK-03.4**: S3 + DynamoDB integration validated — ✅ DONE  
+
+---
+
+#### Remaining Work (Step 3 Continuation) :
+
+- Add **EventBridge scheduler** to trigger Lambda at fixed intervals
+- Define **CloudWatch alarms** for:
+  - Lambda execution failures
+  - Data quality failures (quarantine rate)
+- Replace stub provider with real market data API
+- Introduce AWS Secrets Manager for API credentials
+
+**Overall Step Status**: ⏳ In Progress (core pipeline complete, automation pending)
+
+---
+
+## Next Big Steps
 1. **Provider API Integration**: Replacing the stub with a real API for fetching market data (e.g., Alpha Vantage, Yahoo Finance).
 2. **Batch Processing**: Implementing batch pipelines to process historical data and aggregate it for deeper analytics.
 3. **Machine Learning**: Integrating machine learning models for price prediction.
@@ -166,6 +239,7 @@ Planned work:
 
 ## Technologies Used So Far
 - **AWS Lambda**
+- **Elastic Container Registry(ECR)**
 - **EventBridge**
 - **S3**
 - **DynamoDB**
