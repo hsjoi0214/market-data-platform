@@ -15,3 +15,15 @@ variable "region" {
   type        = string
   default     = "us-east-1"
 }
+
+variable "schedule_enabled" {
+  description = "Enable/disable EventBridge schedule for the streaming Lambda"
+  type        = bool
+  default     = false
+}
+
+variable "schedule_rate_minutes" {
+  description = "How often to run the streaming Lambda"
+  type        = number
+  default     = 1
+}

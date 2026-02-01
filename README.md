@@ -204,18 +204,18 @@ raw → curated → quality-gated → serving.
 - **TASK-03.2**: Lambda deployment via Terraform — ✅ DONE  
 - **TASK-03.3**: Cloud execution of streaming pipeline — ✅ DONE  
 - **TASK-03.4**: S3 + DynamoDB integration validated — ✅ DONE  
+- **TASK-03.5**: EventBridge scheduler implemented and validated (with reversible control via Terraform variables) — ✅ DONE  
 
 
 #### Remaining Work (Step 3 Continuation) :
 
-- Add **EventBridge scheduler** to trigger Lambda at fixed intervals
 - Define **CloudWatch alarms** for:
   - Lambda execution failures
   - Data quality failures (quarantine rate)
 - Replace stub provider with real market data API
 - Introduce AWS Secrets Manager for API credentials
 
-**Overall Step Status**: ⏳ In Progress (core pipeline complete, automation pending)
+**Overall Step Status**: ⏳ In Progress (core pipeline complete, observability and real ingestion pending)
 
 ---
 
