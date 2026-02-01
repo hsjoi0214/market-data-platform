@@ -9,3 +9,5 @@ build/
 .terraform.lock.hcl
 *.zip
 data/
+terraform.tfvars
+terraform.tfvars.json
