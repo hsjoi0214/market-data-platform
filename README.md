@@ -205,15 +205,20 @@ raw → curated → quality-gated → serving.
 - **TASK-03.3**: Cloud execution of streaming pipeline — ✅ DONE  
 - **TASK-03.4**: S3 + DynamoDB integration validated — ✅ DONE  
 - **TASK-03.5**: EventBridge scheduler implemented and validated (reversible control via Terraform variables) — ✅ DONE  
-- **TASK-03.6**: CloudWatch alarms + log retention configured (Errors + Throttles) — ✅ DONE  
-- **TASK-03.7**: Quality marker added to Lambda logs (`QUALITY=PASS|FAIL`) for monitoring — ✅ DONE  
+- **TASK-03.6**: CloudWatch alarms configured for Lambda Errors and Throttles — ✅ DONE  
+- **TASK-03.7**: Observability refactor — direct CloudWatch metric emission from Lambda (replaced log-derived metrics) — ✅ DONE  
+- **TASK-03.8**: Storage liveness monitoring added (raw S3 write freshness alarm) — ✅ DONE  
+
+> **Observability Note**  
+> Data quality and storage liveness signals are now emitted directly from the Lambda function as CloudWatch metrics.  
+> This replaces what i used earlier log-based metric extraction to reduce latency, avoid brittle log parsing, and treat metrics as first-class system signals.
+
 
 #### Remaining Work (Step 3 Continuation) :
 
-- Add **CloudWatch log metric filter** + **alarm** for data quality failures (`QUALITY=FAIL`)
 - Replace stub provider with real market data API
 - Introduce AWS Secrets Manager for API credentials
-- Add notification wiring (SNS) for alarms (optional, portfolio polish)
+- Add alarm notifications (SNS) for production-style alerting (optional, portfolio polish)
 
 **Overall Step Status**: ⏳ In Progress (core pipeline complete, observability and real ingestion pending)
 

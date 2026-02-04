@@ -3,15 +3,15 @@ from __future__ import annotations
 import json
 import os
 from datetime import datetime, timezone
+from decimal import Decimal
 from pathlib import PurePosixPath
 from typing import Any, Dict, List
-from decimal import Decimal
 
 import boto3
 
 from pipelines.streaming.ingest_lambda.provider import fetch_latest_prices
-from pipelines.streaming.ingest_lambda.transform import normalize_price_event
 from pipelines.streaming.ingest_lambda.quality import validate_curated_prices
+from pipelines.streaming.ingest_lambda.transform import normalize_price_event
 
 
 def _ddb_safe(obj: Any) -> Any:
@@ -37,6 +37,24 @@ def _key(prefix: str, ts: str) -> str:
     return str(PurePosixPath(prefix) / f"prices_{ts}.jsonl")
 
 
+def _put_metric(namespace: str, metric_name: str, value: float = 1.0) -> None:
+    """
+    Publish a lightweight custom metric to CloudWatch.
+    This is more reliable than log-based metric filters (especially for container Lambdas).
+    """
+    cw = boto3.client("cloudwatch")
+    cw.put_metric_data(
+        Namespace=namespace,
+        MetricData=[
+            {
+                "MetricName": metric_name,
+                "Value": value,
+                "Unit": "Count",
+            }
+        ],
+    )
+
+
 def lambda_handler(event, context):
     bucket = os.environ["S3_BUCKET_NAME"]
     table_name = os.environ["DDB_TABLE_LATEST_PRICES"]
@@ -53,13 +71,19 @@ def lambda_handler(event, context):
 
     s3 = boto3.client("s3")
 
+    # RAW write (always)
     raw_key = _key("raw/prices", ts)
     s3.put_object(Bucket=bucket, Key=raw_key, Body=_jsonl(raw))
 
+    # Storage liveness metric: "did raw land?"
+    _put_metric(namespace="MDP/Storage", metric_name="StorageRawWriteCount", value=1)
+
     if ok:
+        # CURATED write (only on PASS)
         curated_key = _key("curated/prices", ts)
         s3.put_object(Bucket=bucket, Key=curated_key, Body=_jsonl(curated))
 
+        # Serve latest prices to DynamoDB
         ddb = boto3.resource("dynamodb")
         table = ddb.Table(table_name)
         for item in curated:
@@ -73,8 +97,12 @@ def lambda_handler(event, context):
             "items_written": len(curated),
         }
 
+    # FAIL → quarantine
     quarantine_key = _key("quarantine/streaming", ts)
     s3.put_object(Bucket=bucket, Key=quarantine_key, Body=_jsonl(curated))
+
+    # Quality metric: "how often do we fail GE?"
+    _put_metric(namespace="MDP/Quality", metric_name="QualityFailCount", value=1)
 
     return {
         "quality": "FAIL",

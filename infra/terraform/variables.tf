@@ -27,3 +27,9 @@ variable "schedule_rate_minutes" {
   type        = number
   default     = 1
 }
+
+variable "lambda_image_tag" {
+  type        = string
+  description = "ECR image tag for the streaming ingest Lambda container image"
+  default     = "v2"
+}

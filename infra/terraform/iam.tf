@@ -37,6 +37,12 @@ resource "aws_iam_role_policy" "lambda_policy" {
         Resource = aws_dynamodb_table.latest_prices.arn
       },
       {
+        # Allow publishing custom CloudWatch metrics (PutMetricData has no resource-level ARNs)
+        Action   = ["cloudwatch:PutMetricData"]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+      {
         Action   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
         Effect   = "Allow"
         Resource = "*"
