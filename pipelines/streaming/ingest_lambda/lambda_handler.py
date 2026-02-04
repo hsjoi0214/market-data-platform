@@ -47,6 +47,7 @@ def lambda_handler(event, context):
     curated = [normalize_price_event(e) for e in raw]
 
     ok, msg = validate_curated_prices(curated)
+    print(f"QUALITY={'PASS' if ok else 'FAIL'}")
 
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 

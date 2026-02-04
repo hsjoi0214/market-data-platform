@@ -19,3 +19,10 @@ resource "aws_cloudwatch_event_target" "streaming_lambda_target" {
   rule  = aws_cloudwatch_event_rule.streaming_schedule[0].name
   arn   = aws_lambda_function.streaming_ingest.arn
 }
+
+
+
+# Three AWS resources (only when schedule_enabled=true)
+# - an EventBridge rule: rate(2 minutes)
+# - a Lambda permission: allows events.amazonaws.com to invoke our Lambda
+# - an EventBridge target: connects the rule → our Lambda

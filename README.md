@@ -204,16 +204,16 @@ raw → curated → quality-gated → serving.
 - **TASK-03.2**: Lambda deployment via Terraform — ✅ DONE  
 - **TASK-03.3**: Cloud execution of streaming pipeline — ✅ DONE  
 - **TASK-03.4**: S3 + DynamoDB integration validated — ✅ DONE  
-- **TASK-03.5**: EventBridge scheduler implemented and validated (with reversible control via Terraform variables) — ✅ DONE  
-
+- **TASK-03.5**: EventBridge scheduler implemented and validated (reversible control via Terraform variables) — ✅ DONE  
+- **TASK-03.6**: CloudWatch alarms + log retention configured (Errors + Throttles) — ✅ DONE  
+- **TASK-03.7**: Quality marker added to Lambda logs (`QUALITY=PASS|FAIL`) for monitoring — ✅ DONE  
 
 #### Remaining Work (Step 3 Continuation) :
 
-- Define **CloudWatch alarms** for:
-  - Lambda execution failures
-  - Data quality failures (quarantine rate)
+- Add **CloudWatch log metric filter** + **alarm** for data quality failures (`QUALITY=FAIL`)
 - Replace stub provider with real market data API
 - Introduce AWS Secrets Manager for API credentials
+- Add notification wiring (SNS) for alarms (optional, portfolio polish)
 
 **Overall Step Status**: ⏳ In Progress (core pipeline complete, observability and real ingestion pending)
 
@@ -252,8 +252,16 @@ raw → curated → quality-gated → serving.
 
 ---
 
+## Security Note
+```bash
+- Secrets and environment-specific configuration are intentionally excluded.
+- See .env.example and terraform.tfvars.example for required variables.
+```
+
+---
+
 ## License
-This project is licensed under the Fourth-Projection.
+This project is licensed under the company "Fourth-Projection".
 
 
 
