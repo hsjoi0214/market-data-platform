@@ -225,7 +225,6 @@ raw → curated → quality-gated → serving.
 ---
 
 ## Next Big Steps
-1. **Provider API Integration**: Replacing the stub with a real API for fetching market data (e.g., Alpha Vantage, Yahoo Finance).
 2. **Batch Processing**: Implementing batch pipelines to process historical data and aggregate it for deeper analytics.
 3. **Machine Learning**: Integrating machine learning models for price prediction.
 4. **UI Integration**: Building a lightweight frontend to view stock data and analytics.
