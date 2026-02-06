@@ -11,6 +11,7 @@ resource "aws_lambda_function" "streaming_ingest" {
     variables = {
       S3_BUCKET_NAME          = aws_s3_bucket.raw_bucket.bucket
       DDB_TABLE_LATEST_PRICES = aws_dynamodb_table.latest_prices.name
+      PROVIDER_SECRET_ID      = "mdp/market-data/${var.environment}/provider_api_key"
     }
   }
 
@@ -23,3 +24,4 @@ resource "aws_lambda_function" "streaming_ingest" {
   # Important: Lambda must wait until the repo exists
   depends_on = [aws_ecr_repository.streaming_ingest]
 }
+

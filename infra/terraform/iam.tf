@@ -46,6 +46,13 @@ resource "aws_iam_role_policy" "lambda_policy" {
         Action   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
         Effect   = "Allow"
         Resource = "*"
+      },
+      {
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Effect   = "Allow"
+        Resource = "arn:aws:secretsmanager:${var.region}:582997419489:secret:mdp/market-data/${var.environment}/provider_api_key*"
       }
     ]
   })

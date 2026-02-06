@@ -1,1 +1,1 @@
-{"quality": "PASS", "message": "PASS", "s3_raw_key": "raw/prices/prices_20260204T101351Z.jsonl", "s3_curated_key": "curated/prices/prices_20260204T101351Z.jsonl", "items_written": 5}
+{"quality": "PASS", "message": "PASS", "s3_raw_key": "raw/prices/prices_20260206T102143Z.jsonl", "s3_curated_key": "curated/prices/prices_20260206T102143Z.jsonl", "items_written": 1}

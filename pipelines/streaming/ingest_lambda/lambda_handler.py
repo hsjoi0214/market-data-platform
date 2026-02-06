@@ -59,7 +59,7 @@ def lambda_handler(event, context):
     bucket = os.environ["S3_BUCKET_NAME"]
     table_name = os.environ["DDB_TABLE_LATEST_PRICES"]
 
-    symbols = ["AAPL", "MSFT", "TSLA", "AMZN", "NVDA"]  # stub list for now
+    symbols = ["AAPL", "MSFT"]  # stub list for now
 
     raw = fetch_latest_prices(symbols)
     curated = [normalize_price_event(e) for e in raw]
