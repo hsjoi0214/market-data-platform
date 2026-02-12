@@ -209,18 +209,29 @@ raw → curated → quality-gated → serving.
 - **TASK-03.7**: Observability refactor — direct CloudWatch metric emission from Lambda (replaced log-derived metrics) — ✅ DONE  
 - **TASK-03.8**: Storage liveness monitoring added (raw S3 write freshness alarm) — ✅ DONE
 - **TASK-03.9**: Real market data ingestion implemented (Alpha Vantage via AWS Secrets Manager) — ✅ DONE  
+- **TASK-03.10**: Run a final end-to-end streaming pipeline for 10-12 minutes and gather results — ✅ DONE  
 
 > **Observability Note**  
 > Screenshots of CloudWatch alarms and real ingestion execution are available under `docs/observability/` and `docs/execution/`.
 > The pipeline now ingests live market data securely via AWS Secrets Manager, with metrics emitted directly from Lambda to CloudWatch.
 
+#### Execution Evidence (Screenshots)
 
-#### Remaining Work (Step 3 Continuation) :
+End-to-end execution proof (EventBridge → Lambda → S3 raw/curated → GE gate → DynamoDB latest) is captured in:
+
+- `docs/execution/`
+
+This folder contains screenshots showing:
+- EventBridge schedule enabled/disabled
+- Data landing in S3 raw zone
+- Curated/served result visible in DynamoDB after passing the quality gate
+
+#### Remaining Work in Step-3/ Streaming Pipeline (Later priority after batch pipeline completion) :
 
 - Add alarm notifications (SNS) for production-style alerting (optional, portfolio polish)
 - Harden provider rate limiting (adaptive backoff / retries)
 
-**Overall Step Status**: ⏳ In Progress (core pipeline complete, observability and real ingestion complete. some production level finishing is needed.)
+**Overall Step Status**: core pipeline complete, observability and real ingestion complete - ✅ DONE 
 
 ---
 
