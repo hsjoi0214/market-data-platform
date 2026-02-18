@@ -138,7 +138,7 @@ All infrastructure was created using **Terraform** to ensure repeatability and c
 
 **Goal**: Deploy the validated local streaming pipeline to AWS and execute it end-to-end in the cloud.
 
-This step transitions the project from *local simulation* to a **production-style, cloud-executed streaming pipeline**, while preserving the same architectural guarantees:
+This step transitions the project from **local simulation** to a **production-style, cloud-executed streaming pipeline**, while preserving the same architectural guarantees:
 raw → curated → quality-gated → serving.
 
 #### What Was Implemented :
@@ -174,7 +174,7 @@ raw → curated → quality-gated → serving.
 - On **FAIL**:
   - Write curated batch to the S3 quarantine zone
   - Prevent invalid data from being served
-
+- The folder for ge and sub-folders are reserved for future GE Data Context suites/checkpoints since current validation is code-first in quality.py.
 ##### 5. DynamoDB Integration
 - DynamoDB used as an OLTP serving store for “latest price per symbol”
 - Implemented float → `Decimal` conversion to meet DynamoDB type requirements

@@ -44,3 +44,6 @@ def run_local(symbols: List[str] | None = None) -> None:
 
 if __name__ == "__main__":
     run_local()
+    
+    
+# Same as the storage.py file, this was also used for local runs. Lambda_handler.py is the actual code for AWS, production use.

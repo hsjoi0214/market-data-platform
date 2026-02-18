@@ -10,3 +10,6 @@ def write_jsonl(path: Path, records: Iterable[Dict]) -> None:
     with path.open("w", encoding="utf-8") as f:
         for r in records:
             f.write(json.dumps(r) + "\n")
+            
+            
+# This was used for the local testing of the ingest lambda, but is not used in the actual lambda code, which writes to s3 instead of local disk.
