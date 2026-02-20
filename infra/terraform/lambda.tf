@@ -25,3 +25,6 @@ resource "aws_lambda_function" "streaming_ingest" {
   depends_on = [aws_ecr_repository.streaming_ingest]
 }
 
+# chain of responsibility can be seen here as : eventbridge gets activated and points to lambda ARN, 
+# then this file points to the ecr_image and then lambda services pulls from ecr when needed. 
+
