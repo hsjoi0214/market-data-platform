@@ -40,7 +40,7 @@ Treat this repository as a **reference implementation**—a concrete example of 
 
 ---
 
-## Steps Followed in the Project
+## Steps Followed in the Project (Streaming Pipeline)
 
 ### Step 0: **Initial Setup & Local Development**
 **Goal**: Establish a reproducible local development environment and validate core pipeline logic before touching the cloud.
@@ -236,11 +236,73 @@ This folder contains screenshots showing:
 ---
 
 ## Next Big Steps
-2. **Batch Processing**: Implementing batch pipelines to process historical data and aggregate it for deeper analytics.
 3. **Machine Learning**: Integrating machine learning models for price prediction.
 4. **UI Integration**: Building a lightweight frontend to view stock data and analytics.
 5. **Cost Optimization**: Fine-tuning AWS resources for lower cost.
 
+---
+
+## Steps Followed in the Project (Batch Pipeline)
+
+### Goal
+Prove the end-to-end batch analytics logic locally (**raw → curated → analytics → quality gate → quarantine**) before deploying to AWS (Glue/Athena).
+
+---
+
+## Pipeline Zones (Local)
+
+### Raw Zone (`data/raw/prices_daily/`)
+- Provider-format daily price records (JSONL)
+- No assumptions, no validation
+
+### Curated Zone (`data/curated/prices_daily/`)
+- Cleaned and standardized daily price records
+- Canonical schema contract for downstream use
+
+### Analytics Zone (`data/analytics/ohlc_daily/`)
+- Analytics-ready output (daily OHLC candles)
+- Dataset intended for OLAP workloads (Athena/ML later)
+
+### Quarantine Zone (`data/quarantine/batch/ohlc_daily/`)
+- Analytics output that fails quality checks
+- Preserved for inspection/debugging (never served)
+
+---
+
+## Pipeline Flow
+1. Fetch historical daily prices (stubbed provider initially).
+2. Write provider-format records to the raw zone.
+3. Normalize and standardize into the curated daily price schema.
+4. Produce the OHLC daily analytics output in the analytics zone.
+5. Validate the analytics output using Great Expectations.
+6. Route analytics output:
+   - **PASS** → keep analytics output as the “official” batch result
+   - **FAIL** → write analytics output to the quarantine zone
+
+---
+
+## Key Design Decision
+In batch pipelines, the **analytics output is the product**.  
+So the quality gate is applied to the **analytics output (OHLC)**, not just the raw ingestion.
+
+---
+
+## Status
+- **TASK-04.1:** Batch zone wiring (raw / curated / analytics / quarantine): ✅ DONE
+- **TASK-04.2:** Daily price normalization to curated schema: ✅ DONE
+- **TASK-04.3:** OHLC daily analytics output generation: ✅ DONE
+- **TASK-04.4:** Great Expectations gate on analytics output: ✅ DONE
+- **TASK-04.5:** Pass/fail routing with quarantine handling: ✅ DONE
+
+---
+
+## Notes (How this maps to AWS later)
+This local batch pipeline mirrors the future AWS batch design:
+- Raw/Curated/Analytics → S3 prefixes
+- Batch compute → AWS Glue job (or Spark)
+- Analytics query → Glue Data Catalog + Athena
+- Quality gate → GE run step (in Glue job or as a separate validation step)
+- Quarantine → S3 quarantine prefix
 ---
 
 ## Technologies Used So Far
@@ -251,7 +313,10 @@ This folder contains screenshots showing:
 - **DynamoDB**
 - **Terraform**
 - **Great Expectations**
-- **Poetry + Python** (for local development)
+- **Glue Data Catalog**
+- **Athena**
+- **AWS Glue**
+- **Poetry + Python**
 
 ---
 
