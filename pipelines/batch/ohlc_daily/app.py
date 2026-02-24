@@ -1,11 +1,18 @@
 from __future__ import annotations
 
+import os
 from datetime import datetime, timezone
 
-from pipelines.batch.ohlc_daily.provider import fetch_daily_prices_stub
+from dotenv import load_dotenv
+
+from pipelines.batch.ohlc_daily.provider import DailyPricesRequest, fetch_daily_prices
+from pipelines.batch.ohlc_daily.quality import validate_ohlc_daily
 from pipelines.batch.ohlc_daily.storage import write_jsonl
 from pipelines.batch.ohlc_daily.transform import to_curated_prices_daily, to_ohlc_daily
-from pipelines.batch.ohlc_daily.quality import validate_ohlc_daily
+
+load_dotenv()
+
+ALLOWED_MODES = {"backfill", "incremental"}
 
 
 def _ts() -> str:
@@ -13,13 +20,21 @@ def _ts() -> str:
 
 
 def run_local() -> None:
-    symbols = ["AAPL", "MSFT"]
-    days = 30
+    # Local pipeline runner (single-process). In AWS, we’ll decouple/orchestrate.
+    mode = os.getenv("BATCH_MODE", "backfill").strip().lower()
+    if mode not in ALLOWED_MODES:
+        raise ValueError(f"BATCH_MODE must be one of {sorted(ALLOWED_MODES)}. Got: {mode!r}")
 
     ts = _ts()
 
-    # 1) Extract (stub)
-    raw_rows = fetch_daily_prices_stub(symbols=symbols, days=days)
+    # 1) Extract (stubbed provider for now)
+    req = DailyPricesRequest(
+        mode=mode,
+        symbols=["AAPL", "MSFT"],
+        backfill_days=252,  # used when mode="backfill"
+        lookback_days=10,   # used when mode="incremental"
+    )
+    raw_rows = fetch_daily_prices(req)
 
     # 2) Land RAW
     raw_path = f"data/raw/prices_daily/prices_daily_{ts}.jsonl"
