@@ -252,20 +252,74 @@ Prove the end-to-end batch analytics logic locally (**raw → curated → analyt
 ## Pipeline Zones (Local)
 
 ### Raw Zone (`data/raw/prices_daily/`)
-- Provider-format daily price records (JSONL)
-- No assumptions, no validation
+Contains provider-format daily price records.
+
+Characteristics:
+- Raw ingestion from the data provider
+- No transformations applied
+- No schema guarantees
+- Preserved for lineage and replay
+
 
 ### Curated Zone (`data/curated/prices_daily/`)
-- Cleaned and standardized daily price records
-- Canonical schema contract for downstream use
+Standardized daily price dataset.
+
+Transformations applied:
+
+- Symbol normalization
+- Numeric type normalization
+- Currency standardization
+- Timestamp normalization
+- Schema alignment
+
+This zone represents the **canonical dataset used by downstream pipelines**.
 
 ### Analytics Zone (`data/analytics/ohlc_daily/`)
-- Analytics-ready output (daily OHLC candles)
-- Dataset intended for OLAP workloads (Athena/ML later)
+Analytics-ready dataset produced from curated data.
+
+Dataset type:
+- **Daily OHLC candles**
+
+Fields:
+
+| Column | Description |
+|------|------|
+| symbol | Stock symbol |
+| date | Trading date |
+| open | Opening price |
+| high | Highest price |
+| low | Lowest price |
+| close | Closing price |
+| volume | Trading volume |
+| currency | Currency code |
+| ts_market | Market timestamp |
+| ts_ingest | Ingestion timestamp |
+| source | Data provider |
+
+This dataset is optimized for:
+
+- **Athena queries**
+- **OLAP analysis**
+- **ML feature engineering**
+- **dashboarding**
+
+---
 
 ### Quarantine Zone (`data/quarantine/batch/ohlc_daily/`)
-- Analytics output that fails quality checks
-- Preserved for inspection/debugging (never served)
+Stores analytics datasets that fail the data quality gate.
+
+Reasons a dataset may land here:
+
+- Invalid price ranges
+- Missing required fields
+- Broken schema
+- Timestamp errors
+
+Quarantine ensures:
+
+- bad data is **never served**
+- failures remain **inspectable**
+- pipelines remain **observable**
 
 ---
 
@@ -278,6 +332,9 @@ Prove the end-to-end batch analytics logic locally (**raw → curated → analyt
 6. Route analytics output:
    - **PASS** → keep analytics output as the “official” batch result
    - **FAIL** → write analytics output to the quarantine zone
+7. Upload validated analytics output to S3 (`analytics/ohlc_daily/`).
+8. Register the analytics dataset in the AWS Glue Data Catalog.
+9. Query the dataset using Amazon Athena for OLAP-style analytics.
 
 ---
 
@@ -288,11 +345,19 @@ So the quality gate is applied to the **analytics output (OHLC)**, not just the 
 ---
 
 ## Status
-- **TASK-04.1:** Batch zone wiring (raw / curated / analytics / quarantine): ✅ DONE
-- **TASK-04.2:** Daily price normalization to curated schema: ✅ DONE
-- **TASK-04.3:** OHLC daily analytics output generation: ✅ DONE
-- **TASK-04.4:** Great Expectations gate on analytics output: ✅ DONE
-- **TASK-04.5:** Pass/fail routing with quarantine handling: ✅ DONE
+- Batch Pipeline
+	•	TASK-04.1: Batch zone wiring (raw / curated / analytics / quarantine) — ✅ DONE
+	•	TASK-04.2: Daily price normalization to curated schema — ✅ DONE
+	•	TASK-04.3: OHLC daily analytics output generation — ✅ DONE
+	•	TASK-04.4: Great Expectations gate on analytics output — ✅ DONE
+	•	TASK-04.5: Pass/fail routing with quarantine handling — ✅ DONE
+
+- Batch Analytics Infrastructure
+	•	TASK-04.6: S3 batch analytics prefixes provisioned — ✅ DONE
+	•	TASK-04.7: Glue Data Catalog database created — ✅ DONE
+	•	TASK-04.8: Glue external table registered for analytics dataset — ✅ DONE
+	•	TASK-04.9: Athena workgroup configured for OLAP queries — ✅ DONE
+	•	TASK-04.10: Athena query validation performed — ✅ DONE
 
 ---
 
