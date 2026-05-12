@@ -4,10 +4,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List
 
-from pipelines.streaming.ingest_lambda.provider import fetch_latest_prices
-from pipelines.streaming.ingest_lambda.storage import write_jsonl
-from pipelines.streaming.ingest_lambda.transform import normalize_price_event
-from pipelines.streaming.ingest_lambda.quality import validate_curated_prices
+from pipelines.streaming.ingest_lambda.common.provider import fetch_latest_prices
+from pipelines.streaming.ingest_lambda.common.quality import validate_curated_prices
+from pipelines.streaming.ingest_lambda.common.transform import normalize_price_event
+from pipelines.streaming.ingest_lambda.local.storage import write_jsonl
 
 
 def run_local(symbols: List[str] | None = None) -> None:
@@ -44,6 +44,3 @@ def run_local(symbols: List[str] | None = None) -> None:
 
 if __name__ == "__main__":
     run_local()
-    
-    
-# Same as the storage.py file, this was also used for local runs. Lambda_handler.py is the actual code for AWS, production use.

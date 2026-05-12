@@ -1,5 +1,5 @@
 # Learning Header
-# Learning Phase: Batch
+# Learning Track: Batch
 # Learning Step: 3 of 5
 # Checklist Categories: 3. Compute / Processing, 5. Permissions / IAM, 4. Persistence / Data Stores
 # Purpose: Deploy the Glue transform job that reads raw daily data from S3 and writes curated and analytics Parquet outputs.
@@ -79,8 +79,8 @@ resource "aws_s3_object" "glue_scripts_prefix" {
 resource "aws_s3_object" "batch_ohlc_glue_script" {
   bucket = aws_s3_bucket.raw_bucket.bucket
   key    = "glue/scripts/batch_ohlc_daily_glue_job.py"
-  source = "${path.module}/../../pipelines/batch/ohlc_daily/glue_job.py"
-  etag   = filemd5("${path.module}/../../pipelines/batch/ohlc_daily/glue_job.py")
+  source = "${path.module}/../../pipelines/batch/ohlc_daily/cloud/glue_job.py"
+  etag   = filemd5("${path.module}/../../pipelines/batch/ohlc_daily/cloud/glue_job.py")
 }
 
 # ----------------------------------------

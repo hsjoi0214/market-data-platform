@@ -1,9 +1,10 @@
 """
 Batch Glue transform job.
 
-Execution Order:
-- Cloud production path: 4 of 6
-- Local learning path: concept mirrored by `app.py`, not used directly
+Learning Surface:
+- Cloud
+Execution Step:
+- 2 of 4 in the cloud batch walkthrough
 """
 
 from pyspark.sql import SparkSession

@@ -1,9 +1,10 @@
 """
 Batch pipeline local runner.
 
-Execution Order:
-- Local learning path: 1 of 5
-- Cloud production path: not used directly
+Learning Surface:
+- Local
+Execution Step:
+- 1 of 5 in the local batch walkthrough
 """
 
 from __future__ import annotations
@@ -13,10 +14,10 @@ from datetime import datetime, timezone
 
 from dotenv import load_dotenv
 
-from pipelines.batch.ohlc_daily.provider import DailyPricesRequest, fetch_daily_prices
-from pipelines.batch.ohlc_daily.quality import validate_ohlc_daily
-from pipelines.batch.ohlc_daily.storage import write_jsonl
-from pipelines.batch.ohlc_daily.transform import to_curated_prices_daily, to_ohlc_daily
+from pipelines.batch.ohlc_daily.common.provider import DailyPricesRequest, fetch_daily_prices
+from pipelines.batch.ohlc_daily.common.quality import validate_ohlc_daily
+from pipelines.batch.ohlc_daily.common.transform import to_curated_prices_daily, to_ohlc_daily
+from pipelines.batch.ohlc_daily.local.storage import write_jsonl
 
 load_dotenv()
 

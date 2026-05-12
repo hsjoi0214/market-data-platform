@@ -1,5 +1,5 @@
 # Learning Header
-# Learning Phase: Batch
+# Learning Track: Batch
 # Learning Step: 2 of 5
 # Checklist Categories: 3. Compute / Processing, 5. Permissions / IAM, 6. Configuration / Secrets
 # Purpose: Deploy the batch extract Lambda that calls Alpha Vantage and lands raw historical JSONL into S3.
@@ -87,7 +87,7 @@ resource "aws_lambda_function" "batch_extract" {
   memory_size = 512
 
   image_config {
-    command = ["pipelines.batch.ohlc_daily.extract_lambda.lambda_handler"]
+    command = ["pipelines.batch.ohlc_daily.cloud.extract_lambda.lambda_handler"]
   }
 
   environment {

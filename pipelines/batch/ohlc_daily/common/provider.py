@@ -1,9 +1,8 @@
 """
 Batch data provider layer.
 
-Execution Order:
-- Local learning path: 2 of 5
-- Cloud production path: 3 of 6
+Learning Surface:
+- Common shared logic for local and cloud batch extraction
 """
 
 from __future__ import annotations

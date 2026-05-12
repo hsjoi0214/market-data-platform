@@ -1,9 +1,10 @@
 """
 Batch local storage helpers.
 
-Execution Order:
-- Local learning path: used by steps 2, 3, 4, and 5 of 5
-- Cloud production path: not used directly because AWS writes go through boto3/Spark
+Learning Surface:
+- Local
+Execution Step:
+- Used by steps 2, 3, 4, and 5 of 5 in the local batch walkthrough
 """
 
 from __future__ import annotations

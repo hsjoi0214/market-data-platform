@@ -1,9 +1,8 @@
 """
 Batch transform helpers.
 
-Execution Order:
-- Local learning path: 3 of 5
-- Cloud production path: logic conceptually represented inside Glue step 4 of 6
+Learning Surface:
+- Common shared logic, mainly used by the local batch walkthrough
 """
 
 from __future__ import annotations

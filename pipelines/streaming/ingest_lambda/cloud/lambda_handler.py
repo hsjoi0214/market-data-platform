@@ -9,9 +9,9 @@ from typing import Any, Dict, List
 
 import boto3
 
-from pipelines.streaming.ingest_lambda.provider import fetch_latest_prices
-from pipelines.streaming.ingest_lambda.quality import validate_curated_prices
-from pipelines.streaming.ingest_lambda.transform import normalize_price_event
+from pipelines.streaming.ingest_lambda.common.provider import fetch_latest_prices
+from pipelines.streaming.ingest_lambda.common.quality import validate_curated_prices
+from pipelines.streaming.ingest_lambda.common.transform import normalize_price_event
 
 
 def _ddb_safe(obj: Any) -> Any:

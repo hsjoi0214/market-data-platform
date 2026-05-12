@@ -7,7 +7,7 @@
 
 ## Command
 
-BATCH_MODE=incremental poetry run python -m pipelines.batch.ohlc_daily.app
+BATCH_MODE=incremental poetry run python -m pipelines.batch.ohlc_daily.local.app
 
 ## Output Summary
 

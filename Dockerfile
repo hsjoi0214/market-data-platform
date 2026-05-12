@@ -11,4 +11,4 @@ COPY schemas ${LAMBDA_TASK_ROOT}/schemas
 # If you rely on any top-level config files, copy them explicitly
 # COPY pyproject.toml ${LAMBDA_TASK_ROOT}/pyproject.toml
 
-CMD ["pipelines.streaming.ingest_lambda.lambda_handler.lambda_handler"]
+CMD ["pipelines.streaming.ingest_lambda.cloud.lambda_handler.lambda_handler"]

@@ -1,9 +1,10 @@
 """
 Batch extract Lambda entrypoint.
 
-Execution Order:
-- Cloud production path: 2 of 6
-- Local learning path: not used directly
+Learning Surface:
+- Cloud
+Execution Step:
+- 1 of 4 in the cloud batch walkthrough
 """
 
 from __future__ import annotations
@@ -16,7 +17,7 @@ from typing import Any, Dict, Iterable, List
 
 import boto3
 
-from pipelines.batch.ohlc_daily.provider import DailyPricesRequest, fetch_daily_prices
+from pipelines.batch.ohlc_daily.common.provider import DailyPricesRequest, fetch_daily_prices
 
 
 def _parse_symbols(value: str | Iterable[str] | None) -> List[str]:

@@ -1,9 +1,8 @@
 """
 Batch quality checks.
 
-Execution Order:
-- Local learning path: 4 of 5
-- Cloud production path: planned later after transform and query path are stable
+Learning Surface:
+- Common shared quality logic, currently used by the local batch walkthrough
 """
 
 from __future__ import annotations

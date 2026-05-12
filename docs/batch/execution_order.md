@@ -2,6 +2,12 @@
 
 This file is the simplest way to follow the batch pipeline from beginning to end.
 
+## Folder Layout
+
+- `pipelines/batch/ohlc_daily/local/`: local learning runner and local-only helpers
+- `pipelines/batch/ohlc_daily/cloud/`: AWS entrypoints
+- `pipelines/batch/ohlc_daily/common/`: shared business logic and reserved shared modules
+
 ## Cloud Path (Current AWS Batch Path)
 
 1. **Deploy infrastructure with Terraform**
@@ -21,7 +27,7 @@ This file is the simplest way to follow the batch pipeline from beginning to end
 
 2. **Invoke the batch extract Lambda**
    File:
-   - `pipelines/batch/ohlc_daily/extract_lambda.py`
+   - `pipelines/batch/ohlc_daily/cloud/extract_lambda.py`
 
    What happens:
    - reads runtime mode like `incremental` or `backfill`
@@ -30,7 +36,7 @@ This file is the simplest way to follow the batch pipeline from beginning to end
 
 3. **Fetch historical data from the provider**
    File:
-   - `pipelines/batch/ohlc_daily/provider.py`
+   - `pipelines/batch/ohlc_daily/common/provider.py`
 
    What happens:
    - loads Alpha Vantage API key from Secrets Manager
@@ -39,7 +45,7 @@ This file is the simplest way to follow the batch pipeline from beginning to end
 
 4. **Run the Glue transform job**
    File:
-   - `pipelines/batch/ohlc_daily/glue_job.py`
+   - `pipelines/batch/ohlc_daily/cloud/glue_job.py`
 
    What happens:
    - reads raw JSONL from S3
@@ -67,23 +73,23 @@ This file is the simplest way to follow the batch pipeline from beginning to end
 
 1. **Run the local batch pipeline**
    File:
-   - `pipelines/batch/ohlc_daily/app.py`
+   - `pipelines/batch/ohlc_daily/local/app.py`
 
 2. **Generate or fetch raw rows**
    File:
-   - `pipelines/batch/ohlc_daily/provider.py`
+   - `pipelines/batch/ohlc_daily/common/provider.py`
 
 3. **Normalize records**
    File:
-   - `pipelines/batch/ohlc_daily/transform.py`
+   - `pipelines/batch/ohlc_daily/common/transform.py`
 
 4. **Validate analytics output**
    File:
-   - `pipelines/batch/ohlc_daily/quality.py`
+   - `pipelines/batch/ohlc_daily/common/quality.py`
 
 5. **Write local JSONL outputs**
    File:
-   - `pipelines/batch/ohlc_daily/storage.py`
+   - `pipelines/batch/ohlc_daily/local/storage.py`
 
 ## Important Note
 

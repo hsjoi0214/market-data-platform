@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Tuple
 
-import pandas as pd
 import great_expectations as gx
+import pandas as pd
 
 
 def validate_curated_prices(records: List[Dict[str, Any]]) -> Tuple[bool, str]:

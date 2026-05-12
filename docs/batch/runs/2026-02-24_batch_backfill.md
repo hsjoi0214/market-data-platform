@@ -7,7 +7,7 @@
 
 ## Command
 
-poetry run python -m pipelines.batch.ohlc_daily.app
+poetry run python -m pipelines.batch.ohlc_daily.local.app
 
 ## Output Summary
 
