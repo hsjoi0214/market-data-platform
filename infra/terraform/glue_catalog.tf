@@ -23,17 +23,18 @@ resource "aws_glue_catalog_table" "ohlc_daily" {
   table_type    = "EXTERNAL_TABLE"
 
   parameters = {
-    EXTERNAL = "TRUE"
+    EXTERNAL       = "TRUE"
+    classification = "parquet"
   }
 
   storage_descriptor {
     location      = "s3://${aws_s3_bucket.raw_bucket.bucket}/analytics/ohlc_daily/"
-    input_format  = "org.apache.hadoop.mapred.TextInputFormat"
-    output_format = "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat"
+    input_format  = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat"
+    output_format = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat"
 
     ser_de_info {
-      name                  = "ohlc_daily_json"
-      serialization_library = "org.openx.data.jsonserde.JsonSerDe"
+      name                  = "ohlc_daily_parquet"
+      serialization_library = "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
     }
 
     columns {
