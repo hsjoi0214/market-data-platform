@@ -1,14 +1,29 @@
+"""
+Batch Glue transform job.
+
+Execution Order:
+- Cloud production path: 4 of 6
+- Local learning path: concept mirrored by `app.py`, not used directly
+"""
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
 
 
 def get_arg(args, name, default=None):
+    """Read one named Glue job argument from `sys.argv`, returning a default when absent."""
     if name in args:
         return args[args.index(name) + 1]
     return default
 
 
 def main():
+    """
+    Run the cloud batch transform from raw JSONL in S3 to curated and analytics Parquet.
+
+    Glue intentionally stays transform-only in this project: extraction happens upstream
+    in the batch extract Lambda, and querying happens downstream in Glue Catalog/Athena.
+    """
     import sys
 
     raw_input_path = get_arg(sys.argv, "--RAW_INPUT_PATH")
@@ -20,8 +35,9 @@ def main():
 
     spark = SparkSession.builder.appName("batch-ohlc-daily").getOrCreate()
 
-    # Read raw JSONL from S3
-    df_raw = spark.read.json(raw_input_path)
+    # Read raw JSONL recursively so Glue can consume nested raw batch runs
+    # such as source=alphavantage/mode=incremental/as_of=.../window_days=.../*.jsonl
+    df_raw = spark.read.option("recursiveFileLookup", "true").json(raw_input_path)
 
     # Standardize schema/types
     df_curated = (
