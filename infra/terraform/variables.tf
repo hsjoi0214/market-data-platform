@@ -1,5 +1,5 @@
 # Learning Header
-# Learning Phase: Foundation
+# Learning Track: Foundation
 # Learning Step: 2 of 5
 # Checklist Categories: 6. Configuration / Secrets, 9. Environment / Delivery
 # Purpose: Define the project-level inputs that control naming, region, scheduling, and image rollout.

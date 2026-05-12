@@ -1,5 +1,5 @@
 # Learning Header
-# Learning Phase: Streaming
+# Learning Track: Streaming
 # Learning Step: 4 of 6
 # Checklist Categories: 3. Compute / Processing, 7. Observability / Operations
 # Purpose: Optionally schedule the streaming Lambda through EventBridge and grant invoke permission.

@@ -1,5 +1,5 @@
 # Learning Header
-# Learning Phase: Foundation
+# Learning Track: Foundation
 # Learning Step: 3 of 5
 # Checklist Categories: 4. Persistence / Data Stores, 2. Security
 # Purpose: Create the core S3 bucket and baseline storage protections used by both streaming and batch pipelines.

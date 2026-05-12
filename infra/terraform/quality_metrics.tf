@@ -1,5 +1,5 @@
 # Learning Header
-# Learning Phase: Streaming
+# Learning Track: Streaming
 # Learning Step: 6 of 6
 # Checklist Categories: 7. Observability / Operations, 8. Reliability / Production Readiness
 # Purpose: Monitor data quality failures and raw-write freshness for the streaming path.

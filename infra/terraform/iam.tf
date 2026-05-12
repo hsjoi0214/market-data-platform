@@ -1,5 +1,5 @@
 # Learning Header
-# Learning Phase: Streaming
+# Learning Track: Streaming
 # Learning Step: 2 of 6
 # Checklist Categories: 5. Permissions / IAM, 6. Configuration / Secrets
 # Purpose: Define the streaming Lambda execution role and its permissions for S3, DynamoDB, CloudWatch, and Secrets Manager.

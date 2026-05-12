@@ -1,5 +1,5 @@
 # Learning Header
-# Learning Phase: Streaming
+# Learning Track: Streaming
 # Learning Step: 3 of 6
 # Checklist Categories: 3. Compute / Processing, 5. Permissions / IAM, 6. Configuration / Secrets
 # Purpose: Deploy the streaming ingest Lambda from the shared container image and inject its runtime configuration.

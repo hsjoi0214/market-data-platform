@@ -1,5 +1,5 @@
 # Learning Header
-# Learning Phase: Streaming
+# Learning Track: Streaming
 # Learning Step: 1 of 6
 # Checklist Categories: 4. Persistence / Data Stores
 # Purpose: Create the DynamoDB serving table used by the streaming pipeline for latest prices.
