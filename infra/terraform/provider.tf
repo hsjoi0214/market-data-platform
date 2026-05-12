@@ -1,5 +1,6 @@
 # Learning Header
-# Read Order: 01
+# Learning Phase: Foundation
+# Learning Step: 1 of 5
 # Checklist Categories: 9. Environment / Delivery
 # Purpose: Configure the AWS provider and generate a stable random suffix for globally unique resource names.
 

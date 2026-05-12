@@ -1,5 +1,6 @@
 # Learning Header
-# Read Order: 14
+# Learning Phase: Batch
+# Learning Step: 4 of 5
 # Checklist Categories: 4. Persistence / Data Stores, 6. Configuration / Secrets
 # Purpose: Register the batch analytics dataset in Glue Catalog so downstream tools can read it as a table.
 

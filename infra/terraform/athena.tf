@@ -1,5 +1,6 @@
 # Learning Header
-# Read Order: 15
+# Learning Phase: Batch
+# Learning Step: 5 of 5
 # Checklist Categories: 3. Compute / Processing, 4. Persistence / Data Stores, 7. Observability / Operations
 # Purpose: Configure the Athena workgroup that queries the analytics zone and stores query results in S3.
 

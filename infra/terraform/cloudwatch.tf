@@ -1,5 +1,6 @@
 # Learning Header
-# Read Order: 10
+# Learning Phase: Streaming
+# Learning Step: 5 of 6
 # Checklist Categories: 7. Observability / Operations
 # Purpose: Configure the streaming Lambda log group and baseline Lambda error/throttle alarms.
 

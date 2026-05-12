@@ -1,5 +1,6 @@
 # Learning Header
-# Read Order: 16
+# Learning Phase: Foundation
+# Learning Step: 5 of 5
 # Checklist Categories: 9. Environment / Delivery
 # Purpose: Expose the most useful Terraform outputs so you can inspect and operate the deployed platform.
 

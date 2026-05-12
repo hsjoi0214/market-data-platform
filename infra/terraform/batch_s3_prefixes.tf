@@ -1,5 +1,6 @@
 # Learning Header
-# Read Order: 05
+# Learning Phase: Batch
+# Learning Step: 1 of 5
 # Checklist Categories: 4. Persistence / Data Stores
 # Purpose: Create placeholder prefixes for the batch raw, curated, analytics, quarantine, and Athena result zones.
 
