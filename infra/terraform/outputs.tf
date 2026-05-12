@@ -12,3 +12,8 @@ output "lambda_role_arn" {
   value       = aws_iam_role.lambda_role.arn
   description = "The IAM role ARN for Lambda"
 }
+
+output "batch_extract_lambda_name" {
+  value       = aws_lambda_function.batch_extract.function_name
+  description = "The batch extract Lambda function name"
+}
