@@ -1,9 +1,18 @@
+"""
+Batch transform helpers.
+
+Execution Order:
+- Local learning path: 3 of 5
+- Cloud production path: logic conceptually represented inside Glue step 4 of 6
+"""
+
 from __future__ import annotations
 
 from typing import Any, Dict, List
 
 
 def to_curated_prices_daily(raw_rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Normalize raw provider records into the project's canonical curated daily schema."""
     curated: List[Dict[str, Any]] = []
     for r in raw_rows:
         curated.append(
@@ -26,8 +35,10 @@ def to_curated_prices_daily(raw_rows: List[Dict[str, Any]]) -> List[Dict[str, An
 
 def to_ohlc_daily(curated_daily: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
-    Analytics output. For now it's 1:1 daily OHLC rows (already daily).
-    Later you can aggregate intraday ticks into daily candles.
+    Produce analytics-ready OHLC daily rows from curated daily price records.
+
+    For now this is a 1:1 mapping because the input is already daily OHLC data.
+    Later this function can evolve into a true aggregation step.
     """
     # In this simplified version, curated_daily is already daily OHLC.
     # We keep a separate function to preserve the "analytics layer" concept.

@@ -1,3 +1,8 @@
+# Learning Header
+# Read Order: 09
+# Checklist Categories: 3. Compute / Processing, 7. Observability / Operations
+# Purpose: Optionally schedule the streaming Lambda through EventBridge and grant invoke permission.
+
 resource "aws_cloudwatch_event_rule" "streaming_schedule" {
   count               = var.schedule_enabled ? 1 : 0
   name                = "${var.project_name}-${var.environment}-streaming-schedule"

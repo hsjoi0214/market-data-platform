@@ -1,3 +1,8 @@
+# Learning Header
+# Read Order: 13
+# Checklist Categories: 3. Compute / Processing, 5. Permissions / IAM, 4. Persistence / Data Stores
+# Purpose: Deploy the Glue transform job that reads raw daily data from S3 and writes curated and analytics Parquet outputs.
+
 # ----------------------------------------
 # Glue IAM role
 # ----------------------------------------

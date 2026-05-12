@@ -1,3 +1,11 @@
+"""
+Batch extract Lambda entrypoint.
+
+Execution Order:
+- Cloud production path: 2 of 6
+- Local learning path: not used directly
+"""
+
 from __future__ import annotations
 
 import json
@@ -12,6 +20,7 @@ from pipelines.batch.ohlc_daily.provider import DailyPricesRequest, fetch_daily_
 
 
 def _parse_symbols(value: str | Iterable[str] | None) -> List[str]:
+    """Normalize symbol input from event or environment variables into a clean list."""
     if value is None:
         return ["AAPL", "MSFT"]
 
@@ -27,16 +36,19 @@ def _parse_symbols(value: str | Iterable[str] | None) -> List[str]:
 
 
 def _parse_as_of(value: str | None) -> date | None:
+    """Parse an optional ISO date override used to make batch windows reproducible."""
     if not value:
         return None
     return date.fromisoformat(value)
 
 
 def _jsonl(records: List[Dict[str, Any]]) -> bytes:
+    """Serialize records to newline-delimited JSON bytes for S3 object writes."""
     return ("\n".join(json.dumps(r) for r in records) + "\n").encode("utf-8")
 
 
 def _put_metric(namespace: str, metric_name: str, value: float) -> None:
+    """Publish a lightweight CloudWatch custom metric for batch observability."""
     cw = boto3.client("cloudwatch")
     cw.put_metric_data(
         Namespace=namespace,
@@ -51,6 +63,7 @@ def _put_metric(namespace: str, metric_name: str, value: float) -> None:
 
 
 def _group_by_symbol(rows: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
+    """Group extracted raw rows by symbol so each symbol lands in its own raw object."""
     grouped: Dict[str, List[Dict[str, Any]]] = {}
     for row in rows:
         grouped.setdefault(str(row["symbol"]), []).append(row)
@@ -58,6 +71,7 @@ def _group_by_symbol(rows: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any
 
 
 def _s3_key(mode: str, as_of: date, window_days: int, symbol: str) -> str:
+    """Build a deterministic raw S3 object key for one batch extract slice."""
     prefix = PurePosixPath(
         "raw",
         "prices_daily",
@@ -70,6 +84,7 @@ def _s3_key(mode: str, as_of: date, window_days: int, symbol: str) -> str:
 
 
 def _resolve_request(event: Dict[str, Any]) -> DailyPricesRequest:
+    """Merge Lambda event overrides and environment defaults into one extract request."""
     mode = str(event.get("mode") or os.getenv("BATCH_MODE", "incremental")).strip().lower()
     if mode not in {"backfill", "incremental"}:
         raise ValueError("mode must be 'backfill' or 'incremental'")
@@ -90,6 +105,12 @@ def _resolve_request(event: Dict[str, Any]) -> DailyPricesRequest:
 
 
 def lambda_handler(event, context):
+    """
+    Execute one cloud batch extract run and land raw historical JSONL into S3.
+
+    This is the first runtime step in the current cloud batch path after Terraform
+    has provisioned the Lambda and its IAM permissions.
+    """
     event = event or {}
 
     bucket = os.environ["S3_BUCKET_NAME"]

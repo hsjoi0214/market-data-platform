@@ -1,3 +1,11 @@
+"""
+Batch data provider layer.
+
+Execution Order:
+- Local learning path: 2 of 5
+- Cloud production path: 3 of 6
+"""
+
 from __future__ import annotations
 
 import json
@@ -18,6 +26,7 @@ BatchMode = Literal["backfill", "incremental"]
 
 
 def _iso_z(dt: datetime) -> str:
+    """Format a timezone-aware datetime as an ISO-8601 string ending in `Z`."""
     return dt.isoformat().replace("+00:00", "Z")
 
 
@@ -49,6 +58,7 @@ def _get_api_key() -> str:
 
 
 def _is_weekday(d: date) -> bool:
+    """Return True when the given date is a weekday trading day candidate."""
     return d.weekday() < 5
 
 
@@ -81,6 +91,8 @@ def _last_n_trading_days(end: date, n: int) -> List[date]:
 
 @dataclass(frozen=True)
 class DailyPricesRequest:
+    """Configuration object describing one batch extract request."""
+
     mode: BatchMode
     symbols: List[str]
     source: str = "stub"
@@ -140,6 +152,12 @@ def fetch_daily_prices(req: DailyPricesRequest) -> List[Dict]:
 
 
 def _fetch_daily_series(symbol: str, api_key: str, outputsize: str) -> Dict[str, Dict[str, str]]:
+    """
+    Fetch one symbol's Alpha Vantage daily series with minimal retry/backoff handling.
+
+    The retry is intentionally small and aimed at the free-tier burst limit so students
+    can still see a realistic API integration without adding heavy orchestration.
+    """
     params = {
         "function": "TIME_SERIES_DAILY",
         "symbol": symbol,
@@ -182,6 +200,12 @@ def _fetch_daily_series(symbol: str, api_key: str, outputsize: str) -> Dict[str,
 
 
 def fetch_daily_prices_alphavantage(req: DailyPricesRequest) -> List[Dict]:
+    """
+    Fetch historical daily OHLCV rows from Alpha Vantage and normalize them to raw records.
+
+    The output shape is still considered raw/provider-facing because downstream transform
+    steps remain responsible for canonicalization and analytics publishing.
+    """
     end = req.as_of or date.today()
     window_days = req.backfill_days if req.mode == "backfill" else req.lookback_days
     outputsize = "full" if window_days > 100 else "compact"
@@ -231,8 +255,10 @@ def fetch_daily_prices_stub(
     end: Optional[date] = None,
 ) -> List[Dict]:
     """
-    Stub "daily prices" for N trading days for each symbol.
-    Output is provider-like, not curated yet.
+    Generate stub daily prices for N trading days for each symbol.
+
+    Output stays provider-like rather than curated so the rest of the pipeline can be
+    exercised without changing downstream transform assumptions.
 
     - days = number of TRADING days (weekdays) to emit per symbol
     - end = last date to consider (defaults to today)

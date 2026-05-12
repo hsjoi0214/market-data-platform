@@ -1,3 +1,8 @@
+# Learning Header
+# Read Order: 03
+# Checklist Categories: 4. Persistence / Data Stores, 2. Security
+# Purpose: Create the core S3 bucket and baseline storage protections used by both streaming and batch pipelines.
+
 resource "aws_s3_bucket" "raw_bucket" {
   bucket = "${var.project_name}-${var.environment}-${var.region}-${random_id.bucket_suffix.hex}"
 

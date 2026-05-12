@@ -1,3 +1,8 @@
+# Learning Header
+# Read Order: 10
+# Checklist Categories: 7. Observability / Operations
+# Purpose: Configure the streaming Lambda log group and baseline Lambda error/throttle alarms.
+
 # Creates a CloudWatch log group for our Lambda function and sets how long logs are kept.
 resource "aws_cloudwatch_log_group" "lambda_streaming_ingest" {
   name              = "/aws/lambda/${aws_lambda_function.streaming_ingest.function_name}"

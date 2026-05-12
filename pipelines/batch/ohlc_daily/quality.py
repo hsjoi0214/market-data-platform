@@ -1,15 +1,26 @@
+"""
+Batch quality checks.
+
+Execution Order:
+- Local learning path: 4 of 5
+- Cloud production path: planned later after transform and query path are stable
+"""
+
 from __future__ import annotations
 
 from typing import Any, Dict, List, Tuple
 
-import pandas as pd
 import great_expectations as gx
+import pandas as pd
 
 
 def validate_ohlc_daily(records: List[Dict[str, Any]]) -> Tuple[bool, str]:
     """
-    GE 1.11-compatible validation for OHLC daily analytics output.
-    Returns (ok, message).
+    Validate analytics-ready OHLC daily output using pandas guards plus Great Expectations.
+
+    Returns:
+    - `True, "PASS"` when the dataset satisfies the expected schema and invariants
+    - `False, <reason>` when validation fails
     """
     if not records:
         return False, "No records to validate"

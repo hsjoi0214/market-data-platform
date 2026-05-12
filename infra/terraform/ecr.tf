@@ -1,3 +1,8 @@
+# Learning Header
+# Read Order: 07
+# Checklist Categories: 3. Compute / Processing, 9. Environment / Delivery
+# Purpose: Provision the ECR repository that stores the Lambda container image used by the streaming and batch extract runtimes.
+
 resource "aws_ecr_repository" "streaming_ingest" {
   name                 = "${var.project_name}-${var.environment}-streaming-ingest"
   image_tag_mutability = "MUTABLE"

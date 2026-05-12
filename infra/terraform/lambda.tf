@@ -1,3 +1,8 @@
+# Learning Header
+# Read Order: 08
+# Checklist Categories: 3. Compute / Processing, 5. Permissions / IAM, 6. Configuration / Secrets
+# Purpose: Deploy the streaming ingest Lambda from the shared container image and inject its runtime configuration.
+
 resource "aws_lambda_function" "streaming_ingest" {
   function_name = "${var.project_name}-${var.environment}-streaming-ingest"
   role          = aws_iam_role.lambda_role.arn
@@ -27,4 +32,3 @@ resource "aws_lambda_function" "streaming_ingest" {
 
 # chain of responsibility can be seen here as : eventbridge gets activated and points to lambda ARN, 
 # then this file points to the ecr_image and then lambda services pulls from ecr when needed. 
-

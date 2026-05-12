@@ -1,3 +1,8 @@
+# Learning Header
+# Read Order: 06
+# Checklist Categories: 5. Permissions / IAM, 6. Configuration / Secrets
+# Purpose: Define the streaming Lambda execution role and its permissions for S3, DynamoDB, CloudWatch, and Secrets Manager.
+
 resource "aws_iam_role" "lambda_role" {
   name = "lambda-execution-role"
 

@@ -1,3 +1,8 @@
+# Learning Header
+# Read Order: 12
+# Checklist Categories: 3. Compute / Processing, 5. Permissions / IAM, 6. Configuration / Secrets
+# Purpose: Deploy the batch extract Lambda that calls Alpha Vantage and lands raw historical JSONL into S3.
+
 # ----------------------------------------
 # Batch extract Lambda IAM
 # ----------------------------------------

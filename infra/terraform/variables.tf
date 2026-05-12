@@ -1,3 +1,8 @@
+# Learning Header
+# Read Order: 02
+# Checklist Categories: 6. Configuration / Secrets, 9. Environment / Delivery
+# Purpose: Define the project-level inputs that control naming, region, scheduling, and image rollout.
+
 variable "project_name" {
   description = "Name of the project"
   type        = string

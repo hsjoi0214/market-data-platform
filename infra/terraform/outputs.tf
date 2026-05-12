@@ -1,3 +1,8 @@
+# Learning Header
+# Read Order: 16
+# Checklist Categories: 9. Environment / Delivery
+# Purpose: Expose the most useful Terraform outputs so you can inspect and operate the deployed platform.
+
 output "s3_bucket_name" {
   value       = aws_s3_bucket.raw_bucket.bucket
   description = "The S3 bucket name"

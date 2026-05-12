@@ -1,3 +1,8 @@
+# Learning Header
+# Read Order: 04
+# Checklist Categories: 4. Persistence / Data Stores
+# Purpose: Create the DynamoDB serving table used by the streaming pipeline for latest prices.
+
 resource "aws_dynamodb_table" "latest_prices" {
   name         = "latest_prices"
   billing_mode = "PAY_PER_REQUEST"

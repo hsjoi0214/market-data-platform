@@ -1,3 +1,11 @@
+"""
+Batch pipeline local runner.
+
+Execution Order:
+- Local learning path: 1 of 5
+- Cloud production path: not used directly
+"""
+
 from __future__ import annotations
 
 import os
@@ -16,10 +24,17 @@ ALLOWED_MODES = {"backfill", "incremental"}
 
 
 def _ts() -> str:
+    """Return a UTC timestamp string used for deterministic local output file names."""
     return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
 
 def run_local() -> None:
+    """
+    Run the full local batch learning pipeline from extract to quality gate.
+
+    This file is the easiest entry point for understanding the batch flow end to end
+    before looking at the separate cloud extract and Glue transform steps.
+    """
     # Local pipeline runner (single-process). In AWS, we’ll decouple/orchestrate.
     mode = os.getenv("BATCH_MODE", "backfill").strip().lower()
     if mode not in ALLOWED_MODES:
