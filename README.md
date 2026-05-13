@@ -151,17 +151,17 @@ Completed:
 - Glue transform job
 - Parquet curated output
 - partitioned analytics Parquet output in code (`symbol/year/month`)
-- Glue Data Catalog registration
+- partition-aware Glue Data Catalog registration
 - Athena query validation
+- manual AWS batch run validation
 
 Still next:
-- update partition-aware catalog handling
 - strengthen cloud batch quality and observability
-- rerun Athena validation after the partition-aware metadata update
+- add partition-aware batch quality + quarantine flow
 
 Status:
 - **Batch Pipeline**: ✅ working end to end
-- **Next Batch Phase**: ⏳ partition-aware catalog + Athena validation
+- **Next Batch Phase**: ⏳ quality + observability hardening
 
 ---
 
@@ -360,7 +360,7 @@ Implemented:
   - writes **analytics Parquet** to `analytics/ohlc_daily/symbol=.../year=.../month=.../`
 
 - **Glue Catalog + Athena validation**
-  - table updated to read Parquet
+  - table updated to read partitioned Parquet
   - Athena query executed successfully against the analytics dataset
 
 Validated outcomes:
@@ -374,6 +374,8 @@ Validated outcomes:
 - **TASK-04.11**: Real batch extract Lambda implemented — ✅ DONE
 - **TASK-04.12**: Glue updated to read real nested raw layout — ✅ DONE
 - **TASK-04.13**: Batch AWS path validated end to end — ✅ DONE
+- **TASK-04.14**: Analytics output partitioned by `symbol/year/month` — ✅ DONE
+- **TASK-04.15**: Glue Catalog updated for partition-aware Athena reads — ✅ DONE
 
 ---
 
@@ -392,7 +394,7 @@ This separation is intentional.
 Glue is kept **transform-only**.
 It does **not** call Alpha Vantage directly.
 
-The analytics side is also designed to become **partition-aware**:
+The analytics side is now **partition-aware**:
 
 - `analytics/ohlc_daily/symbol=.../year=.../month=.../`
 
@@ -400,14 +402,15 @@ The analytics side is also designed to become **partition-aware**:
 
 ## What We Still Need to Do Next
 
-### Next Batch Step: Partition-Aware Catalog + Athena Validation
+### Next Batch Step: Quality + Observability
 
-The Glue transform is now configured for partitioned analytics output.
+The partitioned batch analytics path is in place.
 The next cloud follow-up is:
 
-- update Glue Catalog partition handling
-- rerun Athena validation
-- add stronger batch cloud quality + observability
+- add stronger batch cloud quality checks
+- add quarantine behavior for cloud batch failures
+- emit batch-specific quality/freshness metrics
+- add alarms if needed
 
 ### Later Work
 
@@ -459,7 +462,7 @@ and:
 
 ---
 
-## How to Run Locally
+## How to Run the Pipelines
 
 1. Install dependencies using **Poetry**:
 
@@ -467,17 +470,101 @@ and:
 poetry install
 ```
 
-2. Run the streaming pipeline locally:
+### Run Locally
+
+Streaming:
 
 ```bash
 poetry run python -m pipelines.streaming.ingest_lambda.local.app
 ```
 
-3. Run the batch pipeline locally:
+Batch:
 
 ```bash
 poetry run python -m pipelines.batch.ohlc_daily.local.app
 ```
+
+### Run in AWS
+
+First deploy or refresh the infrastructure:
+
+```bash
+cd infra/terraform
+terraform fmt
+terraform plan
+terraform apply
+```
+
+Streaming:
+
+1. Set these in `infra/terraform/terraform.tfvars`:
+
+```hcl
+schedule_enabled      = true
+schedule_rate_minutes = 12
+lambda_image_tag      = "v6"
+```
+
+2. Apply Terraform.
+3. Let EventBridge trigger the Lambda automatically.
+4. To pause streaming later, set `schedule_enabled = false` and apply again.
+
+Batch:
+
+1. Apply Terraform.
+2. Invoke the batch extract Lambda manually:
+
+```bash
+aws lambda invoke \
+  --function-name mdp-market-data-dev-batch-extract \
+  --payload '{"mode":"incremental","symbols":["AAPL","MSFT"]}' \
+  --cli-binary-format raw-in-base64-out \
+  --profile mdp-dev \
+  --region us-east-1 \
+  /tmp/batch_extract_response.json
+```
+
+3. Start the Glue job:
+
+```bash
+aws glue start-job-run \
+  --job-name mdp-market-data-dev-batch-ohlc-daily \
+  --profile mdp-dev \
+  --region us-east-1
+```
+
+4. Check the Glue job using the returned `JobRunId`:
+
+```bash
+aws glue get-job-run \
+  --job-name mdp-market-data-dev-batch-ohlc-daily \
+  --run-id <JOB_RUN_ID> \
+  --profile mdp-dev \
+  --region us-east-1
+```
+
+5. Repair partitions after the Glue job succeeds:
+
+```bash
+aws athena start-query-execution \
+  --query-string "MSCK REPAIR TABLE ohlc_daily" \
+  --query-execution-context Database=mdp_market_data_dev \
+  --work-group mdp-market-data-dev-athena \
+  --result-configuration OutputLocation=s3://mdp-market-data-dev-us-east-1-a66798a5/athena/results/ \
+  --profile mdp-dev \
+  --region us-east-1
+```
+
+### Optional Cost Control
+
+If you do not need the cloud resources running, you can remove them and deploy them again later:
+
+```bash
+cd infra/terraform
+terraform destroy
+```
+
+That is a reasonable pattern for a learning project when you are not actively using the platform.
 
 ---
 

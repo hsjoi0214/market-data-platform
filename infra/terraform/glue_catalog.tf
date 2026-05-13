@@ -44,11 +44,6 @@ resource "aws_glue_catalog_table" "ohlc_daily" {
     }
 
     columns {
-      name = "symbol"
-      type = "string"
-    }
-
-    columns {
       name = "date"
       type = "string"
     }
@@ -97,5 +92,20 @@ resource "aws_glue_catalog_table" "ohlc_daily" {
       name = "source"
       type = "string"
     }
+  }
+
+  partition_keys {
+    name = "symbol"
+    type = "string"
+  }
+
+  partition_keys {
+    name = "year"
+    type = "string"
+  }
+
+  partition_keys {
+    name = "month"
+    type = "string"
   }
 }

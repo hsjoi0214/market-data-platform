@@ -87,7 +87,7 @@ resource "aws_lambda_function" "batch_extract" {
   memory_size = 512
 
   image_config {
-    command = ["pipelines.batch.ohlc_daily.cloud.extract_lambda.lambda_handler"]
+    command = ["pipelines.batch.ohlc_daily.extract_lambda.lambda_handler"]
   }
 
   environment {
