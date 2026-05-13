@@ -51,7 +51,7 @@ This file is the simplest way to follow the batch pipeline from beginning to end
    - reads raw JSONL from S3
    - standardizes schema and data types
    - writes curated Parquet to `curated/prices_daily/`
-   - writes analytics Parquet to `analytics/ohlc_daily/`
+   - writes analytics Parquet to `analytics/ohlc_daily/symbol=.../year=.../month=.../`
 
 5. **Read metadata through Glue Catalog**
    File:

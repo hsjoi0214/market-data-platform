@@ -8,7 +8,7 @@ Execution Step:
 """
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col
+from pyspark.sql.functions import col, date_format, to_date
 
 
 def get_arg(args, name, default=None):
@@ -24,6 +24,8 @@ def main():
 
     Glue intentionally stays transform-only in this project: extraction happens upstream
     in the batch extract Lambda, and querying happens downstream in Glue Catalog/Athena.
+    The analytics output is partitioned by symbol/year/month so Athena scans stay more
+    targeted than a single flat directory of Parquet files.
     """
     import sys
 
@@ -66,11 +68,21 @@ def main():
         .parquet(curated_output_path)
     )
 
-    # Analytics output (currently same shape as curated daily OHLC)
-    (
+    # Derive partition columns from the daily trading date for OLAP-friendly analytics layout.
+    df_analytics = (
         df_curated
+        .withColumn("trading_date", to_date(col("date"), "yyyy-MM-dd"))
+        .withColumn("year", date_format(col("trading_date"), "yyyy"))
+        .withColumn("month", date_format(col("trading_date"), "MM"))
+        .drop("trading_date")
+    )
+
+    # Analytics output is partitioned by symbol/year/month.
+    (
+        df_analytics
         .write
         .mode("overwrite")
+        .partitionBy("symbol", "year", "month")
         .parquet(analytics_output_path)
     )
 

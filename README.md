@@ -150,18 +150,18 @@ Completed:
 - S3 raw daily landing
 - Glue transform job
 - Parquet curated output
-- Parquet analytics output
+- partitioned analytics Parquet output in code (`symbol/year/month`)
 - Glue Data Catalog registration
 - Athena query validation
 
 Still next:
-- partition analytics output properly
 - update partition-aware catalog handling
 - strengthen cloud batch quality and observability
+- rerun Athena validation after the partition-aware metadata update
 
 Status:
 - **Batch Pipeline**: ✅ working end to end
-- **Batch Analytics Refinement**: ⏳ next phase
+- **Next Batch Phase**: ⏳ partition-aware catalog + Athena validation
 
 ---
 
@@ -357,7 +357,7 @@ Implemented:
 - **Glue Transform Job**
   - reads the raw daily zone
   - writes **curated Parquet** to `curated/prices_daily/`
-  - writes **analytics Parquet** to `analytics/ohlc_daily/`
+  - writes **analytics Parquet** to `analytics/ohlc_daily/symbol=.../year=.../month=.../`
 
 - **Glue Catalog + Athena validation**
   - table updated to read Parquet
@@ -392,20 +392,19 @@ This separation is intentional.
 Glue is kept **transform-only**.
 It does **not** call Alpha Vantage directly.
 
+The analytics side is also designed to become **partition-aware**:
+
+- `analytics/ohlc_daily/symbol=.../year=.../month=.../`
+
 ---
 
 ## What We Still Need to Do Next
 
-### Next Batch Step: Partitioned Analytics
+### Next Batch Step: Partition-Aware Catalog + Athena Validation
 
-The most important next step is:
+The Glue transform is now configured for partitioned analytics output.
+The next cloud follow-up is:
 
-- partition the analytics output properly
-
-Recommended direction:
-- `analytics/ohlc_daily/symbol=.../year=.../month=.../`
-
-Then:
 - update Glue Catalog partition handling
 - rerun Athena validation
 - add stronger batch cloud quality + observability
