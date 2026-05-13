@@ -60,28 +60,49 @@ Final cloud shape:
 
 ```mermaid
 flowchart LR
-    A["EventBridge"] --> B["Streaming Lambda"]
-    B --> C["Alpha Vantage API"]
-    B --> D["S3 Raw"]
-    B --> E["Transform + QA"]
-    E -->|PASS| F["S3 Curated"]
-    E -->|PASS| G["DynamoDB"]
-    E -->|FAIL| H["S3 Quarantine"]
+    A["EB"] --> B["SB"]
+    B --> C["AV"]
+    B --> D["SR"]
+    B --> E["T+Q"]
+    E -->|PASS| F["SC"]
+    E -->|PASS| G["DDB"]
+    E -->|FAIL| H["SQ"]
 ```
+
+Legend:
+- `EB` = EventBridge
+- `SB` = Streaming Lambda
+- `AV` = Alpha Vantage API
+- `SR` = S3 Raw Zone
+- `T+Q` = Transform + Quality Gate
+- `SC` = S3 Curated Zone
+- `DDB` = DynamoDB
+- `SQ` = S3 Quarantine Zone
 
 ### Batch Pipeline
 
 ```mermaid
 flowchart LR
-    A["Manual Trigger<br/>Schedule Later"] --> B["Batch Extract"]
-    B --> C["Alpha Vantage Daily"]
-    B --> D["S3 Raw Daily"]
-    D --> E["Glue Job"]
-    E --> F["S3 Curated Parquet"]
-    E --> G["S3 Analytics Parquet"]
-    G --> H["Glue Catalog"]
-    H --> I["Athena"]
+    A["MT"] --> B["BE"]
+    B --> C["AVD"]
+    B --> D["SRD"]
+    D --> E["GJ"]
+    E --> F["SCP"]
+    E --> G["SAP"]
+    G --> H["GC"]
+    H --> I["ATH"]
 ```
+
+Legend:
+- `MT` = Manual Trigger for now, scheduled later
+- `BE` = Batch Extract Lambda
+- `AVD` = Alpha Vantage Daily API
+- `SRD` = S3 Raw Daily Zone
+- `GJ` = Glue Job
+- `SCP` = S3 Curated Parquet
+- `SAP` = S3 Analytics Parquet
+- `GC` = Glue Catalog
+- `ATH` = Athena
 
 ---
 
