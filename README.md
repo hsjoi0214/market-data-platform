@@ -58,51 +58,11 @@ Final cloud shape:
 
 ### Streaming Pipeline
 
-```mermaid
-flowchart LR
-    A["EB"] --> B["SB"]
-    B --> C["AV"]
-    B --> D["SR"]
-    B --> E["T+Q"]
-    E -->|PASS| F["SC"]
-    E -->|PASS| G["DDB"]
-    E -->|FAIL| H["SQ"]
-```
-
-Legend:
-- `EB` = EventBridge
-- `SB` = Streaming Lambda
-- `AV` = Alpha Vantage API
-- `SR` = S3 Raw Zone
-- `T+Q` = Transform + Quality Gate
-- `SC` = S3 Curated Zone
-- `DDB` = DynamoDB
-- `SQ` = S3 Quarantine Zone
+![Streaming Pipeline](docs/diagrams/Stream.png)
 
 ### Batch Pipeline
 
-```mermaid
-flowchart LR
-    A["MT"] --> B["BE"]
-    B --> C["AVD"]
-    B --> D["SRD"]
-    D --> E["GJ"]
-    E --> F["SCP"]
-    E --> G["SAP"]
-    G --> H["GC"]
-    H --> I["ATH"]
-```
-
-Legend:
-- `MT` = Manual Trigger for now, scheduled later
-- `BE` = Batch Extract Lambda
-- `AVD` = Alpha Vantage Daily API
-- `SRD` = S3 Raw Daily Zone
-- `GJ` = Glue Job
-- `SCP` = S3 Curated Parquet
-- `SAP` = S3 Analytics Parquet
-- `GC` = Glue Catalog
-- `ATH` = Athena
+![Batch Pipeline](docs/diagrams/Batch.png)
 
 ---
 
