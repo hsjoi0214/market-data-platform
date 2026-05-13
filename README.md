@@ -2,15 +2,86 @@
 
 ## Overview
 
-This project implements a **cloud-native data engineering platform** focused on **market data**. The platform ingests financial market data (like stock prices) in near real-time, cleans and validates it, stores the cleaned data in DynamoDB, and handles failed data through quarantine storage in S3.
+This project implements a **cloud-native data engineering platform** focused on **market data**.
 
+The goal is to build the project the way a real data engineering platform is structured in industry, while still keeping it approachable for students.
 
-Key components:
-- **AWS Lambda**: To process and transform data.
-- **EventBridge**: To trigger Lambda functions at fixed intervals.
-- **S3**: To store raw, curated, and quarantine data.
-- **DynamoDB**: To store the latest price data.
-- **Great Expectations**: To validate the data before it is inserted into DynamoDB.
+At a high level, this repository contains **two pipelines**:
+
+- a **streaming pipeline** for near-real-time latest prices
+- a **batch pipeline** for historical daily prices and analytics datasets
+
+Both pipelines are designed with the same core data engineering principles:
+
+- clear storage zones
+- reproducible infrastructure with Terraform
+- explicit compute layers
+- data quality validation
+- failure isolation through quarantine
+- separation between local learning flow and cloud deployment flow
+
+---
+
+## What Exactly We Are Building
+
+We are building a small but realistic **market data platform** with two complementary paths:
+
+### 1. Streaming Path
+Used for:
+- ingesting the latest prices frequently
+- validating them
+- storing the cleaned result for low-latency serving
+
+Final cloud shape:
+- **EventBridge** triggers **Lambda**
+- Lambda fetches latest prices from **Alpha Vantage**
+- raw and curated records land in **S3**
+- validated latest prices are served from **DynamoDB**
+- failures go to **quarantine**
+
+### 2. Batch Path
+Used for:
+- ingesting historical daily prices
+- transforming them into analytics-ready datasets
+- exposing them through an OLAP query layer
+
+Final cloud shape:
+- **Batch Extract Lambda** fetches historical daily prices from **Alpha Vantage**
+- raw data lands in **S3**
+- **AWS Glue** transforms raw data into curated and analytics Parquet datasets
+- **Glue Data Catalog** registers the analytics table
+- **Athena** queries the analytics dataset
+
+---
+
+## High-Level Pipeline Flow
+
+### Streaming Pipeline
+
+```mermaid
+flowchart LR
+    A["EventBridge Schedule"] --> B["Streaming Lambda"]
+    B --> C["Alpha Vantage API"]
+    B --> D["S3 Raw Zone"]
+    B --> E["Transform + Quality Gate"]
+    E -->|PASS| F["S3 Curated Zone"]
+    E -->|PASS| G["DynamoDB Latest Prices"]
+    E -->|FAIL| H["S3 Quarantine Zone"]
+```
+
+### Batch Pipeline
+
+```mermaid
+flowchart LR
+    A["Manual Trigger Now<br/>EventBridge Later"] --> B["Batch Extract Lambda"]
+    B --> C["Alpha Vantage Historical Daily API"]
+    B --> D["S3 Raw Daily Zone"]
+    D --> E["AWS Glue Transform Job"]
+    E --> F["S3 Curated Parquet"]
+    E --> G["S3 Analytics Parquet"]
+    G --> H["Glue Data Catalog"]
+    H --> I["Athena"]
+```
 
 ---
 
@@ -19,360 +90,382 @@ Key components:
 **This project is intentionally designed as a hands-on learning resource for students and practitioners who want to understand cloud-based data engineering through practice, not theory.**
 
 It provides:
-- An **end-to-end view** of how a data engineering project is structured
-- Clear, incremental steps showing how pipelines are:
-  - Designed
-  - Implemented locally
-  - Tested
-  - Deployed and operated on the cloud
+- an **end-to-end view** of how a data engineering project is structured
+- clear, incremental steps showing how pipelines are:
+  - designed
+  - implemented locally
+  - tested
+  - deployed and operated on the cloud
 
-This repository does **not** aim to explain data engineering concepts in theory (e.g., what is ETL, topics related to storage and abstractions, what is schema evolution, or what is data quality etc). Those topics are assumed to be learned elsewhere. The focus here is purely **practical execution and workflow understanding**.
+This repository does **not** aim to explain data engineering concepts in theory.  
+The focus here is purely **practical execution and workflow understanding**.
 
 Each commit represents a **meaningful progression** in the project:
-- How the repository structure evolves
-- How components are added and wired together
-- How local testing transitions into cloud deployment
-- How validation and failure handling are introduced in real systems
+- how the repository structure evolves
+- how components are added and wired together
+- how local testing transitions into cloud deployment
+- how validation and failure handling are introduced in real systems
 
 The complexity of data engineering always depends on the use case. This project keeps the scope intentionally manageable, while still being realistic enough to demonstrate how a **production-style, end-to-end data pipeline** is built and operated in the cloud.
 
-Treat this repository as a **reference implementation**—a concrete example of how the pieces fit together, rather than a universal blueprint.
+Treat this repository as a **reference implementation**: a concrete example of how the pieces fit together, rather than a universal blueprint.
+
+---
+
+## Learning Structure of the Repository
+
+To make the project easier to follow for students, both pipelines are now split into:
+
+- `common/`
+- `local/`
+- `cloud/`
+
+Meaning:
+
+- `common/` contains shared business logic
+- `local/` contains the local learning runner and local-only helpers
+- `cloud/` contains AWS-specific runtime entrypoints
+
+This makes it easier to answer:
+
+- what the pipeline does logically
+- how the same logic is run locally
+- how the same logic is deployed in the cloud
+
+Helpful reading guides:
+
+- `docs/streaming/execution_order.md`
+- `docs/batch/execution_order.md`
+- `docs/terraform_learning_order.md`
+
+---
+
+## Current Platform Status
+
+### Streaming Pipeline Status
+
+The streaming pipeline is **complete at the core platform level**.
+
+Completed:
+- local streaming pipeline
+- cloud streaming Lambda deployment
+- EventBridge scheduling
+- S3 raw / curated / quarantine zones
+- DynamoDB serving layer
+- Great Expectations quality gate
+- CloudWatch alarms and metrics
+- real data ingestion via **Alpha Vantage + AWS Secrets Manager**
+
+Status:
+- **Streaming Pipeline**: ✅ COMPLETE for current project scope
+
+### Batch Pipeline Status
+
+The batch pipeline is **working end to end in AWS**, but still has one important analytics refinement left.
+
+Completed:
+- local batch pipeline
+- real historical extract via **Batch Extract Lambda + Alpha Vantage + Secrets Manager**
+- S3 raw daily landing
+- Glue transform job
+- Parquet curated output
+- Parquet analytics output
+- Glue Data Catalog registration
+- Athena query validation
+
+Still next:
+- partition analytics output properly
+- update partition-aware catalog handling
+- strengthen cloud batch quality and observability
+
+Status:
+- **Batch Pipeline**: ✅ working end to end
+- **Batch Analytics Refinement**: ⏳ next phase
 
 ---
 
 ## Steps Followed in the Project (Streaming Pipeline)
 
-### Step 0: **Initial Setup & Local Development**
+### Step 0: Initial Setup & Local Development
 **Goal**: Establish a reproducible local development environment and validate core pipeline logic before touching the cloud.
 
 **What was done**:
-- Set up a local Python development environment using **Poetry**.
-- Defined a clear project structure aligned with future AWS deployment.
-- Implemented a **local streaming-style ingestion pipeline** using a stubbed market data provider.
-- Introduced a **canonical curated schema** to normalize provider data.
-- Integrated **Great Expectations (GE)** to enforce data quality rules early in the pipeline.
+- Set up a local Python development environment using **Poetry**
+- Defined a clear project structure aligned with future AWS deployment
+- Implemented a **local streaming-style ingestion pipeline**
+- Introduced a **canonical curated schema**
+- Integrated **Great Expectations (GE)** to enforce data quality rules early
 
 **Key design decision**:
-> Data quality validation is treated as a **hard gate**, ensuring data quality.
+> Data quality validation is treated as a **hard gate**.
 
 **Status**: ✅ DONE
 
 ---
 
-### Step 1: Local Streaming Pipeline (Raw → Curated → Quality Gate)
+### Step 1: Local Streaming Pipeline (Raw -> Curated -> Quality Gate)
 
 **Goal**: Prove the end-to-end streaming logic locally before deploying to AWS.
 
 #### Pipeline Zones (Local)
+
 - **Raw Zone** (`data/raw/`)
-  - Provider-format data (JSONL)
-  - No assumptions, no validation
+  - provider-format data
+  - no assumptions, no validation
+
 - **Curated Zone** (`data/curated/`)
-  - Cleaned and standardized records
-  - Stable schema used across the system
+  - cleaned and standardized records
+  - stable schema used across the system
+
 - **Quarantine Zone** (`data/quarantine/`)
-  - Records that fail data quality checks
-  - Preserved for inspection and debugging
+  - records that fail data quality checks
+  - preserved for inspection and debugging
 
 #### Pipeline Flow
-1. Fetch simulated price data from a provider stub.
+
+1. Fetch price data from the provider.
 2. Write raw data to the raw zone.
 3. Transform raw data into the curated schema.
 4. Validate curated data using **Great Expectations**.
 5. Route data:
-   - **PASS** → curated zone
-   - **FAIL** → quarantine zone
-
-This local flow mirrors the **exact architecture** later deployed to AWS.
+   - **PASS** -> curated zone
+   - **FAIL** -> quarantine zone
 
 **Status**:
-- **TASK-01**: Storage zone separation (raw / curated / quarantine): ✅ DONE  
-- **TASK-02**: Great Expectations data quality gate: ✅ DONE  
-- **TASK-03**: Pass/fail routing logic with quarantine handling: ✅ DONE  
+- **TASK-01**: Storage zone separation (raw / curated / quarantine) — ✅ DONE
+- **TASK-02**: Great Expectations data quality gate — ✅ DONE
+- **TASK-03**: Pass/fail routing logic with quarantine handling — ✅ DONE
 
 ---
 
 ### Step 2: AWS Infrastructure Provisioning (Terraform)
 
-**Goal**: Provision production-grade cloud infrastructure using Infrastructure as Code, without deploying compute yet.
+**Goal**: Provision production-style cloud infrastructure using Infrastructure as Code.
 
-All infrastructure was created using **Terraform** to ensure repeatability and clarity.
-
-#### Provisioned Resources
-1. **S3 Bucket**
-   - Single bucket with logical zones:
-     - `raw/`
-     - `curated/`
-     - `quarantine/`
-   - Versioning enabled
-   - Server-side encryption enabled
-   - Public access fully blocked
-
-2. **DynamoDB Table**
-   - Table name: `latest_prices`
-   - Partition key: `symbol`
-   - Billing mode: PAY_PER_REQUEST
-   - Designed for low-latency “latest value per symbol” access
-
-3. **IAM Role for Lambda**
-   - Permissions to:
-     - Write raw, curated, and quarantine data to S3
-     - Write latest prices to DynamoDB
-     - Emit logs to CloudWatch
-
-4. **AWS Account & Tooling Setup**
-   - AWS account secured with MFA
-   - IAM user created for development
-   - AWS CLI configured (`mdp-dev` profile)
-   - Terraform initialized and validated
-
-> At this stage, **no compute is running**, so cloud cost remains negligible.
+Provisioned:
+- **S3 bucket** with logical zones
+- **DynamoDB** table for latest prices
+- **IAM role** for streaming Lambda
+- AWS account tooling setup for Terraform and CLI usage
 
 **Status**:
-- **TASK-01**: AWS account setup, IAM user, MFA, billing safeguards: ✅ DONE  
-- **TASK-02**: Terraform infrastructure provisioning (S3, DynamoDB, IAM): ✅ DONE
+- **TASK-02.1**: AWS account setup, IAM user, MFA, billing safeguards — ✅ DONE
+- **TASK-02.2**: Terraform provisioning for S3, DynamoDB, IAM — ✅ DONE
 
 ---
 
-### Step 3: Lambda Deployment & Cloud-Based Streaming Pipeline
+### Step 3: Cloud Streaming Pipeline
 
-**Goal**: Deploy the validated local streaming pipeline to AWS and execute it end-to-end in the cloud.
+**Goal**: Deploy the validated local streaming pipeline to AWS and execute it end to end.
 
-This step transitions the project from **local simulation** to a **production-style, cloud-executed streaming pipeline**, while preserving the same architectural guarantees:
-raw → curated → quality-gated → serving.
+Implemented:
+- Lambda containerization
+- ECR repository and image push
+- Lambda deployment through Terraform
+- EventBridge scheduling
+- CloudWatch alarms and custom metrics
+- DynamoDB integration
+- real Alpha Vantage ingestion via **AWS Secrets Manager**
 
-#### What Was Implemented :
-
-##### 1. Lambda Containerization
-- Streaming ingestion pipeline packaged as an **AWS Lambda container image**
-- Based on `public.ecr.aws/lambda/python:3.12`
-- Dependencies installed at build time
-- Build optimized using `.dockerignore`
-- Single-architecture image (`linux/amd64`) to ensure Lambda compatibility
-
-##### 2. Elastic Container Registry (ECR)
-- ECR repository provisioned via Terraform
-- Lambda image pushed to ECR
-- Image-based deployment strategy adopted instead of ZIP packaging
-
-##### 3. Lambda Function Deployment
-- Lambda deployed via Terraform using `package_type = "Image"`
-- Environment variables configured:
-  - `S3_BUCKET_NAME`
-  - `DDB_TABLE_LATEST_PRICES`
-- IAM role attached with least-privilege permissions
-- Memory and timeout tuned for streaming micro-batch workloads
-
-##### 4. Streaming Execution Logic (Cloud)
-- Fetch latest prices (stub provider for now)
-- Normalize provider payload into a canonical schema
-- Write **raw JSONL** batches to S3
-- Apply **Great Expectations** data quality validation
-- On **PASS**:
-  - Write curated JSONL batch to S3
-  - Upsert latest price per symbol into DynamoDB
-- On **FAIL**:
-  - Write curated batch to the S3 quarantine zone
-  - Prevent invalid data from being served
-- The folder for ge and sub-folders are reserved for future GE Data Context suites/checkpoints since current validation is code-first in quality.py.
-##### 5. DynamoDB Integration
-- DynamoDB used as an OLTP serving store for “latest price per symbol”
-- Implemented float → `Decimal` conversion to meet DynamoDB type requirements
-- Verified correct numeric storage and overwrite semantics
-
-##### 6. Observability & Validation
-- Lambda logs emitted to CloudWatch
-- Manual invocation used to validate:
-  - Lambda execution
-  - S3 writes (raw, curated, quarantine)
-  - DynamoDB updates
-  - End-to-end cloud data flow correctness
-
-
-#### Verified Outcomes :
-
+Validated outcomes:
 - Lambda executes successfully in AWS
-- Raw and curated data land in S3
-- Data quality gate enforced in cloud execution
-- Latest prices stored in DynamoDB with correct data types
-- End-to-end streaming pipeline validated
+- raw and curated data land in S3
+- quality gate is enforced in cloud execution
+- latest prices are stored in DynamoDB
+- real market data ingestion is working
 
+**Step 3 Status**:
+- **TASK-03.1**: Lambda containerization & ECR push — ✅ DONE
+- **TASK-03.2**: Lambda deployment via Terraform — ✅ DONE
+- **TASK-03.3**: Cloud execution of streaming pipeline — ✅ DONE
+- **TASK-03.4**: S3 + DynamoDB integration validated — ✅ DONE
+- **TASK-03.5**: EventBridge scheduler implemented and validated — ✅ DONE
+- **TASK-03.6**: CloudWatch alarms configured — ✅ DONE
+- **TASK-03.7**: Direct CloudWatch metric emission from Lambda — ✅ DONE
+- **TASK-03.8**: Storage liveness monitoring added — ✅ DONE
+- **TASK-03.9**: Real market data ingestion via Alpha Vantage + Secrets Manager — ✅ DONE
+- **TASK-03.10**: Final end-to-end streaming validation — ✅ DONE
 
-#### Step 3 Status :
-
-- **TASK-03.1**: Lambda containerization & ECR push — ✅ DONE  
-- **TASK-03.2**: Lambda deployment via Terraform — ✅ DONE  
-- **TASK-03.3**: Cloud execution of streaming pipeline — ✅ DONE  
-- **TASK-03.4**: S3 + DynamoDB integration validated — ✅ DONE  
-- **TASK-03.5**: EventBridge scheduler implemented and validated (reversible control via Terraform variables) — ✅ DONE  
-- **TASK-03.6**: CloudWatch alarms configured for Lambda Errors and Throttles — ✅ DONE  
-- **TASK-03.7**: Observability refactor — direct CloudWatch metric emission from Lambda (replaced log-derived metrics) — ✅ DONE  
-- **TASK-03.8**: Storage liveness monitoring added (raw S3 write freshness alarm) — ✅ DONE
-- **TASK-03.9**: Real market data ingestion implemented (Alpha Vantage via AWS Secrets Manager) — ✅ DONE  
-- **TASK-03.10**: Run a final end-to-end streaming pipeline for 10-12 minutes and gather results — ✅ DONE  
-
-> **Observability Note**  
-> Screenshots of CloudWatch alarms and real ingestion execution are available under `docs/observability/` and `docs/execution/`.
-> The pipeline now ingests live market data securely via AWS Secrets Manager, with metrics emitted directly from Lambda to CloudWatch.
-
-#### Execution Evidence (Screenshots)
-
-End-to-end execution proof (EventBridge → Lambda → S3 raw/curated → GE gate → DynamoDB latest) is captured in:
-
-- `docs/execution/`
-
-This folder contains screenshots showing:
-- EventBridge schedule enabled/disabled
-- Data landing in S3 raw zone
-- Curated/served result visible in DynamoDB after passing the quality gate
-
-#### Remaining Work in Step-3/ Streaming Pipeline (Later priority after batch pipeline completion) :
-
-- Add alarm notifications (SNS) for production-style alerting (optional, portfolio polish)
-- Harden provider rate limiting (adaptive backoff / retries)
-
-**Overall Step Status**: core pipeline complete, observability and real ingestion complete - ✅ DONE 
-
----
-
-## Next Big Steps
-3. **Machine Learning**: Integrating machine learning models for price prediction.
-4. **UI Integration**: Building a lightweight frontend to view stock data and analytics.
-5. **Cost Optimization**: Fine-tuning AWS resources for lower cost.
+**Overall Streaming Status**: ✅ DONE
 
 ---
 
 ## Steps Followed in the Project (Batch Pipeline)
 
 ### Goal
-Prove the end-to-end batch analytics logic locally (**raw → curated → analytics → quality gate → quarantine**) before deploying to AWS (Glue/Athena).
+
+Build a batch analytics path that moves from:
+
+- historical daily market data
+- to curated daily records
+- to analytics-ready Parquet
+- to metadata registration
+- to Athena querying
 
 ---
 
-## Pipeline Zones (Local)
+### Step 4: Local Batch Pipeline
 
-### Raw Zone (`data/raw/prices_daily/`)
-Contains provider-format daily price records.
+**Goal**: Prove the end-to-end batch analytics logic locally before deploying the AWS batch path.
 
-Characteristics:
-- Raw ingestion from the data provider
-- No transformations applied
-- No schema guarantees
-- Preserved for lineage and replay
+#### Pipeline Zones (Local)
 
+- **Raw Zone** (`data/raw/prices_daily/`)
+  - provider-format daily price records
+  - preserved for lineage and replay
 
-### Curated Zone (`data/curated/prices_daily/`)
-Standardized daily price dataset.
+- **Curated Zone** (`data/curated/prices_daily/`)
+  - standardized daily price dataset
+  - canonical dataset for downstream use
 
-Transformations applied:
+- **Analytics Zone** (`data/analytics/ohlc_daily/`)
+  - analytics-ready daily OHLC dataset
+  - intended for Athena, OLAP analysis, ML feature engineering, and dashboards
 
-- Symbol normalization
-- Numeric type normalization
-- Currency standardization
-- Timestamp normalization
-- Schema alignment
+- **Quarantine Zone** (`data/quarantine/batch/ohlc_daily/`)
+  - failed analytics datasets that do not pass the quality gate
 
-This zone represents the **canonical dataset used by downstream pipelines**.
+#### Local Batch Flow
 
-### Analytics Zone (`data/analytics/ohlc_daily/`)
-Analytics-ready dataset produced from curated data.
-
-Dataset type:
-- **Daily OHLC candles**
-
-Fields:
-
-| Column | Description |
-|------|------|
-| symbol | Stock symbol |
-| date | Trading date |
-| open | Opening price |
-| high | Highest price |
-| low | Lowest price |
-| close | Closing price |
-| volume | Trading volume |
-| currency | Currency code |
-| ts_market | Market timestamp |
-| ts_ingest | Ingestion timestamp |
-| source | Data provider |
-
-This dataset is optimized for:
-
-- **Athena queries**
-- **OLAP analysis**
-- **ML feature engineering**
-- **dashboarding**
-
----
-
-### Quarantine Zone (`data/quarantine/batch/ohlc_daily/`)
-Stores analytics datasets that fail the data quality gate.
-
-Reasons a dataset may land here:
-
-- Invalid price ranges
-- Missing required fields
-- Broken schema
-- Timestamp errors
-
-Quarantine ensures:
-
-- bad data is **never served**
-- failures remain **inspectable**
-- pipelines remain **observable**
-
----
-
-## Pipeline Flow
-1. Fetch historical daily prices (stubbed provider initially).
+1. Fetch historical daily prices.
 2. Write provider-format records to the raw zone.
-3. Normalize and standardize into the curated daily price schema.
-4. Produce the OHLC daily analytics output in the analytics zone.
+3. Normalize into the curated daily schema.
+4. Produce the OHLC daily analytics output.
 5. Validate the analytics output using Great Expectations.
-6. Route analytics output:
-   - **PASS** → keep analytics output as the “official” batch result
-   - **FAIL** → write analytics output to the quarantine zone
-7. Upload validated analytics output to S3 (`analytics/ohlc_daily/`).
-8. Register the analytics dataset in the AWS Glue Data Catalog.
-9. Query the dataset using Amazon Athena for OLAP-style analytics.
+6. Route output:
+   - **PASS** -> analytics result remains official
+   - **FAIL** -> quarantine zone
+
+**Status**:
+- **TASK-04.1**: Batch zone wiring (raw / curated / analytics / quarantine) — ✅ DONE
+- **TASK-04.2**: Daily price normalization to curated schema — ✅ DONE
+- **TASK-04.3**: OHLC daily analytics output generation — ✅ DONE
+- **TASK-04.4**: Great Expectations gate on analytics output — ✅ DONE
+- **TASK-04.5**: Pass/fail routing with quarantine handling — ✅ DONE
 
 ---
 
-## Key Design Decision
-In batch pipelines, the **analytics output is the product**.  
-So the quality gate is applied to the **analytics output (OHLC)**, not just the raw ingestion.
+### Step 5: Batch Analytics Infrastructure
+
+**Goal**: Provision the AWS analytics layer for the batch pipeline.
+
+Provisioned:
+- S3 batch prefixes
+- Glue Data Catalog database
+- Glue external table
+- Athena workgroup
+
+**Status**:
+- **TASK-04.6**: S3 batch analytics prefixes provisioned — ✅ DONE
+- **TASK-04.7**: Glue Data Catalog database created — ✅ DONE
+- **TASK-04.8**: Glue external table registered — ✅ DONE
+- **TASK-04.9**: Athena workgroup configured — ✅ DONE
 
 ---
 
-## Status
-- Batch Pipeline
-	•	TASK-04.1: Batch zone wiring (raw / curated / analytics / quarantine) — ✅ DONE
-	•	TASK-04.2: Daily price normalization to curated schema — ✅ DONE
-	•	TASK-04.3: OHLC daily analytics output generation — ✅ DONE
-	•	TASK-04.4: Great Expectations gate on analytics output — ✅ DONE
-	•	TASK-04.5: Pass/fail routing with quarantine handling — ✅ DONE
+### Step 6: Real Batch Extract + AWS Glue Transform
 
-- Batch Analytics Infrastructure
-	•	TASK-04.6: S3 batch analytics prefixes provisioned — ✅ DONE
-	•	TASK-04.7: Glue Data Catalog database created — ✅ DONE
-	•	TASK-04.8: Glue external table registered for analytics dataset — ✅ DONE
-	•	TASK-04.9: Athena workgroup configured for OLAP queries — ✅ DONE
-	•	TASK-04.10: Athena query validation performed — ✅ DONE
+**Goal**: Move the batch path from a local-only concept into a real cloud batch pipeline.
+
+Implemented:
+- **Batch Extract Lambda**
+  - calls Alpha Vantage historical daily endpoint
+  - loads API key from **AWS Secrets Manager**
+  - writes raw JSONL into `raw/prices_daily/`
+
+- **Glue Transform Job**
+  - reads the raw daily zone
+  - writes **curated Parquet** to `curated/prices_daily/`
+  - writes **analytics Parquet** to `analytics/ohlc_daily/`
+
+- **Glue Catalog + Athena validation**
+  - table updated to read Parquet
+  - Athena query executed successfully against the analytics dataset
+
+Validated outcomes:
+- real Alpha Vantage historical data lands in S3
+- Glue successfully reads the new nested raw layout
+- Parquet output lands in curated and analytics zones
+- Athena query succeeds against the batch analytics table
+
+**Status**:
+- **TASK-04.10**: Athena query validation performed — ✅ DONE
+- **TASK-04.11**: Real batch extract Lambda implemented — ✅ DONE
+- **TASK-04.12**: Glue updated to read real nested raw layout — ✅ DONE
+- **TASK-04.13**: Batch AWS path validated end to end — ✅ DONE
 
 ---
 
-## Notes (How this maps to AWS later)
-This local batch pipeline mirrors the future AWS batch design:
-- Raw/Curated/Analytics → S3 prefixes
-- Batch compute → AWS Glue job (or Spark)
-- Analytics query → Glue Data Catalog + Athena
-- Quality gate → GE run step (in Glue job or as a separate validation step)
-- Quarantine → S3 quarantine prefix
+## Current Batch Design Note
+
+The current cloud batch flow is:
+
+- **extract** -> Batch Extract Lambda
+- **raw storage** -> S3
+- **transform** -> AWS Glue
+- **metadata** -> Glue Data Catalog
+- **query** -> Athena
+
+This separation is intentional.
+
+Glue is kept **transform-only**.
+It does **not** call Alpha Vantage directly.
+
+---
+
+## What We Still Need to Do Next
+
+### Next Batch Step: Partitioned Analytics
+
+The most important next step is:
+
+- partition the analytics output properly
+
+Recommended direction:
+- `analytics/ohlc_daily/symbol=.../year=.../month=.../`
+
+Then:
+- update Glue Catalog partition handling
+- rerun Athena validation
+- add stronger batch cloud quality + observability
+
+### Later Work
+
+- finish analytics platform properly after partitioned batch output
+- optional ML layer
+- optional lightweight UI
+- cost optimization and cleanup guidance
+
+---
+
+## Notes (How Local and Cloud Map to Each Other)
+
+The local and cloud implementations are separated visually, but the conceptual flow is the same.
+
+For example:
+
+- local runner -> easier for learning and debugging
+- cloud entrypoint -> easier for deployment and AWS operation
+- shared logic -> easier to reason about the actual transformation and validation steps
+
+This is why the repository now uses:
+
+- `pipelines/streaming/ingest_lambda/local/`
+- `pipelines/streaming/ingest_lambda/cloud/`
+- `pipelines/streaming/ingest_lambda/common/`
+
+and:
+
+- `pipelines/batch/ohlc_daily/local/`
+- `pipelines/batch/ohlc_daily/cloud/`
+- `pipelines/batch/ohlc_daily/common/`
+
 ---
 
 ## Technologies Used So Far
+
 - **AWS Lambda**
-- **Elastic Container Registry(ECR)**
+- **Elastic Container Registry (ECR)**
 - **EventBridge**
 - **S3**
 - **DynamoDB**
@@ -381,32 +474,40 @@ This local batch pipeline mirrors the future AWS batch design:
 - **Glue Data Catalog**
 - **Athena**
 - **AWS Glue**
+- **AWS Secrets Manager**
 - **Poetry + Python**
 
 ---
 
 ## How to Run Locally
+
 1. Install dependencies using **Poetry**:
-    ```bash
-    poetry install
-    ```
-2. Run the streaming pipeline locally:
-    ```bash
-    poetry run python -m pipelines.streaming.ingest_lambda.app
-    ```
 
----
-
-## Security Note
 ```bash
-- Secrets and environment-specific configuration are intentionally excluded.
-- See .env.example and terraform.tfvars.example for required variables.
+poetry install
+```
+
+2. Run the streaming pipeline locally:
+
+```bash
+poetry run python -m pipelines.streaming.ingest_lambda.local.app
+```
+
+3. Run the batch pipeline locally:
+
+```bash
+poetry run python -m pipelines.batch.ohlc_daily.local.app
 ```
 
 ---
 
+## Security Note
+
+- Secrets and environment-specific configuration are intentionally excluded.
+- See `.env.example` and `terraform.tfvars.example` for required variables.
+
+---
+
 ## License
-This project is licensed under the company "Fourth-Projection".
 
-
-
+This project is licensed under the company Fourth-Projection.
